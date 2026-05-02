@@ -7,158 +7,34 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
-        .navbar {
-            background: #2D6A4F;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .navbar { background: #2D6A4F; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
         .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
         .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; }
-        .content {
-            max-width: 700px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .therapeute-info {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        .avatar {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: #52B788;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: white;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
+        .content { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        .therapeute-info { background: white; border-radius: 15px; padding: 25px; display: flex; align-items: center; gap: 20px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 32px; color: white; font-weight: bold; flex-shrink: 0; }
         .therapeute-info h2 { color: #333; font-size: 20px; }
         .therapeute-info p { color: #888; font-size: 14px; margin-top: 5px; }
-        .therapeute-info .tarif {
-            color: #2D6A4F;
-            font-weight: bold;
-            font-size: 16px;
-            margin-top: 5px;
-        }
-        .section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        .section h3 {
-            color: #333;
-            font-size: 16px;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        .type-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-        .type-btn {
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            background: white;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .type-btn:hover, .type-btn.active {
-            border-color: #2D6A4F;
-            background: #f0faf5;
-        }
+        .therapeute-info .tarif { color: #2D6A4F; font-weight: bold; font-size: 16px; margin-top: 5px; }
+        .section { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .section h3 { color: #333; font-size: 16px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+        .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .type-btn { padding: 20px; border: 2px solid #e0e0e0; border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.3s; }
+        .type-btn.active { border-color: #2D6A4F; background: #f0faf5; }
         .type-btn .icon { font-size: 28px; margin-bottom: 8px; }
         .type-btn h4 { color: #333; font-size: 14px; }
-        .type-btn p { color: #888; font-size: 12px; margin-top: 4px; }
-        .jours {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .jour-btn {
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-            min-width: 70px;
-        }
-        .jour-btn:hover, .jour-btn.active {
-            border-color: #2D6A4F;
-            background: #2D6A4F;
-            color: white;
-        }
+        .jours { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .jour-btn { padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; cursor: pointer; text-align: center; transition: all 0.3s; min-width: 70px; }
+        .jour-btn.active { border-color: #2D6A4F; background: #2D6A4F; color: white; }
         .jour-btn .day { font-size: 11px; }
         .jour-btn .date { font-size: 18px; font-weight: bold; }
-        .creneaux {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        .creneau {
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            text-align: center;
-            font-size: 13px;
-            transition: all 0.3s;
-        }
-        .creneau:hover, .creneau.active {
-            border-color: #2D6A4F;
-            background: #2D6A4F;
-            color: white;
-        }
-        .creneau.indispo {
-            background: #f5f5f5;
-            color: #ccc;
-            cursor: not-allowed;
-            border-color: #f0f0f0;
-        }
-        .btn-confirmer {
-            width: 100%;
-            padding: 16px;
-            background: #2D6A4F;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .btn-confirmer:hover { background: #1B4332; }
-        .success-msg {
-            display: none;
-            background: #d4edda;
-            color: #155724;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 16px;
-            margin-top: 15px;
-        }
+        .creneaux { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .creneau { padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; cursor: pointer; text-align: center; font-size: 13px; transition: all 0.3s; }
+        .creneau.active { border-color: #2D6A4F; background: #2D6A4F; color: white; }
+        .creneau.indispo { background: #f5f5f5; color: #ccc; cursor: not-allowed; }
+        .btn-confirmer { width: 100%; padding: 16px; background: #2D6A4F; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .success-msg { display: none; background: #d4edda; color: #155724; padding: 20px; border-radius: 12px; text-align: center; font-size: 16px; margin-top: 15px; }
+        .success-msg a { color: #2D6A4F; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -166,13 +42,12 @@
 <nav class="navbar">
     <div class="logo">نفس</div>
     <div>
-        <a href="therapeutes.html">Thérapeutes</a>
-        <a href="dashboard.html">Dashboard</a>
+        <a href="/therapeutes">Thérapeutes</a>
+        <a href="/dashboard">Dashboard</a>
     </div>
 </nav>
 
 <div class="content">
-
     <div class="therapeute-info">
         <div class="avatar">ف</div>
         <div>
@@ -188,45 +63,17 @@
             <div class="type-btn active" onclick="selectType(this)">
                 <div class="icon">💻</div>
                 <h4>En ligne</h4>
-                <p>Vidéo ou chat</p>
             </div>
             <div class="type-btn" onclick="selectType(this)">
                 <div class="icon">🏥</div>
                 <h4>En cabinet</h4>
-                <p>Casablanca</p>
             </div>
         </div>
     </div>
 
     <div class="section">
         <h3>Choisir une date</h3>
-        <div class="jours">
-            <div class="jour-btn active" onclick="selectJour(this)">
-                <div class="day">Sam</div>
-                <div class="date">03</div>
-            </div>
-            <div class="jour-btn" onclick="selectJour(this)">
-                <div class="day">Dim</div>
-                <div class="date">04</div>
-            </div>
-            <div class="jour-btn" onclick="selectJour(this)">
-                <div class="day">Lun</div>
-                <div class="date">05</div>
-            </div>
-            <div class="jour-btn" onclick="selectJour(this)">
-                <div class="day">Mar</div>
-                <div class="date">06</div>
-            </div>
-            <div class="jour-btn" onclick="selectJour(this)">
-                <div class="day">Mer</div>
-                <div class="date">07</div>
-            </div>
-            <div class="jour-btn" onclick="selectJour(this)">
-                <div class="day">Jeu</div>
-                <div class="date">08</div>
-            </div>
-        </div>
-
+        <div class="jours" id="jours"></div>
         <h3 style="margin-bottom:15px;">Choisir un créneau</h3>
         <div class="creneaux">
             <div class="creneau" onclick="selectCreneau(this)">09:00</div>
@@ -240,42 +87,54 @@
         </div>
     </div>
 
-    <button class="btn-confirmer" onclick="confirmer()">
-        Confirmer la réservation
-    </button>
+    <button class="btn-confirmer" onclick="confirmer()">Confirmer la réservation</button>
 
     <div class="success-msg" id="success">
-        ✅ Réservation confirmée ! Vous recevrez une confirmation par email.
+        ✅ Réservation confirmée !
         <br><br>
-        <a href="dashboard.html" style="color:#2D6A4F;font-weight:bold;">
-            Retour au dashboard
-        </a>
+        <a href="/dashboard">Retour au dashboard</a>
     </div>
-
 </div>
 
 <script>
+    const jours = ['Sam','Dim','Lun','Mar','Mer','Jeu'];
+    const today = new Date();
+    let jourSelectionne = null;
+    let creneauSelectionne = null;
+
+    jours.forEach((j, i) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const btn = document.createElement('div');
+        btn.className = 'jour-btn' + (i === 0 ? ' active' : '');
+        btn.innerHTML = '<div class="day">' + j + '</div><div class="date">' + d.getDate() + '</div>';
+        if (i === 0) jourSelectionne = d.getDate();
+        btn.onclick = () => {
+            document.querySelectorAll('.jour-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            jourSelectionne = d.getDate();
+        };
+        document.getElementById('jours').appendChild(btn);
+    });
+
     function selectType(el) {
         document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
     }
-    function selectJour(el) {
-        document.querySelectorAll('.jour-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-    }
+
     function selectCreneau(el) {
         document.querySelectorAll('.creneau:not(.indispo)').forEach(b => b.classList.remove('active'));
         el.classList.add('active');
+        creneauSelectionne = el.textContent;
     }
+
     function confirmer() {
-        const creneau = document.querySelector('.creneau.active');
-        const jour = document.querySelector('.jour-btn.active');
-        if (!creneau || !jour) {
-            alert('Choisis une date et un créneau !');
+        if (!creneauSelectionne) {
+            alert('Choisis un créneau !');
             return;
         }
-        document.getElementById('success').style.display = 'block';
         document.querySelector('.btn-confirmer').style.display = 'none';
+        document.getElementById('success').style.display = 'block';
     }
 </script>
 

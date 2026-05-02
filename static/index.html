@@ -79,9 +79,7 @@
             gap: 40px;
             flex-wrap: wrap;
         }
-        .step {
-            width: 200px;
-        }
+        .step { width: 200px; }
         .step .number {
             width: 50px; height: 50px;
             background: #2D6A4F;
@@ -110,10 +108,10 @@
 <nav class="navbar">
     <div class="logo">نفس</div>
     <div class="nav-links">
-        <a href="#">Thérapeutes</a>
+        <a href="/therapeutes">Thérapeutes</a>
         <a href="#">Comment ça marche</a>
-        <a href="login.html">Connexion</a>
-        <a href="login.html" style="background:white;color:#2D6A4F;padding:8px 20px;border-radius:20px;">Commencer</a>
+        <a href="/login">Connexion</a>
+        <a href="/login" style="background:white;color:#2D6A4F;padding:8px 20px;border-radius:20px;">Commencer</a>
     </div>
 </nav>
 
@@ -121,7 +119,7 @@
     <h1>نفس</h1>
     <p>صحتك النفسية تهمنا — Votre santé mentale nous tient à cœur</p>
     <p style="font-size:14px;margin-bottom:25px;">Connectez-vous avec un thérapeute marocain qualifié</p>
-    <button onclick="window.location.href='login.html'">Trouver mon thérapeute</button>
+    <button onclick="window.location.href='/login'">Trouver mon thérapeute</button>
 </div>
 
 <div class="section">
@@ -133,7 +131,7 @@
             <div class="specialite">Anxiété & Dépression</div>
             <div class="ville">Casablanca</div>
             <div class="tarif">300 MAD / séance</div>
-            <button>Réserver</button>
+            <button onclick="window.location.href='/login'">Réserver</button>
         </div>
         <div class="card">
             <div class="avatar">م</div>
@@ -141,7 +139,7 @@
             <div class="specialite">Thérapie de couple</div>
             <div class="ville">Rabat</div>
             <div class="tarif">350 MAD / séance</div>
-            <button>Réserver</button>
+            <button onclick="window.location.href='/login'">Réserver</button>
         </div>
         <div class="card">
             <div class="avatar">س</div>
@@ -149,7 +147,7 @@
             <div class="specialite">Trauma & PTSD</div>
             <div class="ville">Marrakech</div>
             <div class="tarif">280 MAD / séance</div>
-            <button>Réserver</button>
+            <button onclick="window.location.href='/login'">Réserver</button>
         </div>
     </div>
 </div>

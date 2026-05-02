@@ -7,141 +7,32 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
-        .navbar {
-            background: #2D6A4F;
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .navbar { background: #2D6A4F; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
         .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
-        .navbar a {
-            color: white; text-decoration: none;
-            font-size: 14px; margin-left: 20px;
-        }
-        .header {
-            background: linear-gradient(135deg, #2D6A4F, #52B788);
-            padding: 40px;
-            color: white;
-            text-align: center;
-        }
+        .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; }
+        .header { background: linear-gradient(135deg, #2D6A4F, #52B788); padding: 40px; color: white; text-align: center; }
         .header h1 { font-size: 32px; margin-bottom: 10px; }
-        .header p { opacity: 0.9; font-size: 15px; }
-        .filters {
-            background: white;
-            padding: 20px 40px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .filter-btn {
-            padding: 8px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 20px;
-            background: white;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s;
-        }
-        .filter-btn.active, .filter-btn:hover {
-            border-color: #2D6A4F;
-            background: #2D6A4F;
-            color: white;
-        }
+        .filters { background: white; padding: 20px 40px; display: flex; gap: 15px; flex-wrap: wrap; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .filter-btn { padding: 8px 20px; border: 2px solid #e0e0e0; border-radius: 20px; background: white; cursor: pointer; font-size: 13px; transition: all 0.3s; }
+        .filter-btn.active, .filter-btn:hover { border-color: #2D6A4F; background: #2D6A4F; color: white; }
         .content { padding: 30px 40px; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            transition: transform 0.2s;
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.2s; }
         .card:hover { transform: translateY(-5px); }
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .avatar {
-            width: 70px; height: 70px;
-            border-radius: 50%;
-            background: #52B788;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            color: white;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
+        .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .avatar { width: 70px; height: 70px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; font-weight: bold; flex-shrink: 0; }
         .card-header .info h3 { color: #333; font-size: 17px; }
-        .card-header .info .specialite {
-            color: #2D6A4F;
-            font-size: 13px;
-            margin-top: 3px;
-        }
-        .card-header .info .ville {
-            color: #888;
-            font-size: 13px;
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin: 3px;
-        }
-        .badge-langue {
-            background: #e8f5e9;
-            color: #2D6A4F;
-        }
-        .badge-dispo {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-        .card-bio {
-            color: #666;
-            font-size: 13px;
-            line-height: 1.6;
-            margin: 15px 0;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 15px;
-        }
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-        }
-        .tarif {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2D6A4F;
-        }
+        .card-header .info .specialite { color: #2D6A4F; font-size: 13px; margin-top: 3px; }
+        .card-header .info .ville { color: #888; font-size: 13px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin: 3px; }
+        .badge-langue { background: #e8f5e9; color: #2D6A4F; }
+        .badge-dispo { background: #e3f2fd; color: #1565c0; }
+        .card-bio { color: #666; font-size: 13px; line-height: 1.6; margin: 15px 0; border-top: 1px solid #f0f0f0; padding-top: 15px; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+        .tarif { font-size: 18px; font-weight: bold; color: #2D6A4F; }
         .tarif span { font-size: 12px; color: #888; font-weight: normal; }
-        .btn-reserver {
-            background: #2D6A4F;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-        .btn-reserver:hover { background: #1B4332; }
-        .note {
-            color: #f4a261;
-            font-size: 14px;
-            margin-top: 8px;
-        }
+        .btn-reserver { background: #2D6A4F; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; font-size: 14px; text-decoration: none; }
+        .note { color: #f4a261; font-size: 14px; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -149,8 +40,8 @@
 <nav class="navbar">
     <div class="logo">نفس</div>
     <div>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="login.html">Déconnexion</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/">Accueil</a>
     </div>
 </nav>
 
@@ -172,7 +63,6 @@
 
 <div class="content">
     <div class="grid">
-
         <div class="card">
             <div class="card-header">
                 <div class="avatar">ف</div>
@@ -187,18 +77,11 @@
                 <span class="badge badge-langue">Français</span>
                 <span class="badge badge-dispo">Disponible</span>
             </div>
-            <div class="card-bio">
-                Psychologue clinicienne avec 10 ans d'expérience.
-                Spécialisée dans les troubles anxieux et la dépression
-                adaptée au contexte marocain.
-            </div>
+            <div class="card-bio">Psychologue clinicienne avec 10 ans d'expérience. Spécialisée dans les troubles anxieux et la dépression adaptée au contexte marocain.</div>
             <div class="note">★★★★★ (4.9)</div>
             <div class="card-footer">
                 <div class="tarif">300 MAD <span>/ séance</span></div>
-                <button class="btn-reserver"
-                    onclick="window.location.href='reservation.html'">
-                    Réserver
-                </button>
+                <a class="btn-reserver" href="/reservation">Réserver</a>
             </div>
         </div>
 
@@ -216,17 +99,11 @@
                 <span class="badge badge-langue">Français</span>
                 <span class="badge badge-dispo">Disponible</span>
             </div>
-            <div class="card-bio">
-                Thérapeute de couple certifié avec une approche
-                culturellement sensible aux valeurs marocaines et islamiques.
-            </div>
+            <div class="card-bio">Thérapeute de couple certifié avec une approche culturellement sensible aux valeurs marocaines et islamiques.</div>
             <div class="note">★★★★★ (4.8)</div>
             <div class="card-footer">
                 <div class="tarif">350 MAD <span>/ séance</span></div>
-                <button class="btn-reserver"
-                    onclick="window.location.href='reservation.html'">
-                    Réserver
-                </button>
+                <a class="btn-reserver" href="/reservation">Réserver</a>
             </div>
         </div>
 
@@ -244,18 +121,11 @@
                 <span class="badge badge-langue">Amazigh</span>
                 <span class="badge badge-dispo">Disponible</span>
             </div>
-            <div class="card-bio">
-                Spécialisée dans les traumatismes et le stress
-                post-traumatique. Approche douce et bienveillante
-                adaptée à la culture amazighe.
-            </div>
+            <div class="card-bio">Spécialisée dans les traumatismes et le stress post-traumatique. Approche douce et bienveillante adaptée à la culture amazighe.</div>
             <div class="note">★★★★☆ (4.7)</div>
             <div class="card-footer">
                 <div class="tarif">280 MAD <span>/ séance</span></div>
-                <button class="btn-reserver"
-                    onclick="window.location.href='reservation.html'">
-                    Réserver
-                </button>
+                <a class="btn-reserver" href="/reservation">Réserver</a>
             </div>
         </div>
 
@@ -273,21 +143,13 @@
                 <span class="badge badge-langue">Français</span>
                 <span class="badge badge-dispo">Disponible</span>
             </div>
-            <div class="card-bio">
-                Expert en thérapie familiale et adolescents.
-                Aide les familles marocaines à traverser les défis
-                modernes tout en respectant les valeurs traditionnelles.
-            </div>
+            <div class="card-bio">Expert en thérapie familiale et adolescents. Aide les familles marocaines à traverser les défis modernes tout en respectant les valeurs traditionnelles.</div>
             <div class="note">★★★★★ (4.9)</div>
             <div class="card-footer">
                 <div class="tarif">320 MAD <span>/ séance</span></div>
-                <button class="btn-reserver"
-                    onclick="window.location.href='reservation.html'">
-                    Réserver
-                </button>
+                <a class="btn-reserver" href="/reservation">Réserver</a>
             </div>
         </div>
-
     </div>
 </div>
 

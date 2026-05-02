@@ -21,127 +21,27 @@
             width: 420px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
         }
-        .logo {
-            text-align: center;
-            font-size: 48px;
-            color: #2D6A4F;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
-        .tabs {
-            display: flex;
-            margin-bottom: 25px;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid #e0e0e0;
-        }
-        .tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            color: #888;
-            background: #f5f5f5;
-            border: none;
-            transition: all 0.3s;
-        }
-        .tab.active {
-            background: #2D6A4F;
-            color: white;
-        }
+        .logo { text-align: center; font-size: 48px; color: #2D6A4F; font-weight: bold; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 30px; }
+        .tabs { display: flex; margin-bottom: 25px; border-radius: 10px; overflow: hidden; border: 1px solid #e0e0e0; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-size: 14px; font-weight: bold; color: #888; background: #f5f5f5; border: none; transition: all 0.3s; }
+        .tab.active { background: #2D6A4F; color: white; }
         .form { display: none; }
         .form.active { display: block; }
         .field { margin-bottom: 18px; }
-        .field label {
-            display: block;
-            font-size: 13px;
-            color: #555;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-        .field input, .field select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            outline: none;
-            transition: border 0.3s;
-        }
-        .field input:focus, .field select:focus {
-            border-color: #2D6A4F;
-        }
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: #2D6A4F;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background 0.3s;
-        }
+        .field label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500; }
+        .field input, .field select { width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 14px; outline: none; }
+        .field input:focus { border-color: #2D6A4F; }
+        .btn { width: 100%; padding: 14px; background: #2D6A4F; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn:hover { background: #1B4332; }
-        .role-select {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-        .role-btn {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            font-size: 13px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .role-btn.active {
-            border-color: #2D6A4F;
-            background: #f0faf5;
-            color: #2D6A4F;
-            font-weight: bold;
-        }
-        .message {
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 14px;
-            display: none;
-        }
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            display: block;
-        }
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            display: block;
-        }
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back-link a {
-            color: #2D6A4F;
-            text-decoration: none;
-            font-size: 14px;
-        }
+        .role-select { display: flex; gap: 10px; margin-bottom: 18px; }
+        .role-btn { flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 10px; background: white; cursor: pointer; font-size: 13px; text-align: center; transition: all 0.3s; }
+        .role-btn.active { border-color: #2D6A4F; background: #f0faf5; color: #2D6A4F; font-weight: bold; }
+        .message { text-align: center; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 14px; display: none; }
+        .message.success { background: #d4edda; color: #155724; display: block; }
+        .message.error { background: #f8d7da; color: #721c24; display: block; }
+        .back-link { text-align: center; margin-top: 20px; }
+        .back-link a { color: #2D6A4F; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -150,11 +50,10 @@
     <div class="subtitle">Votre santé mentale nous tient à cœur</div>
 
     <div class="tabs">
-        <button class="tab active" onclick="showTab('connexion')">Connexion</button>
-        <button class="tab" onclick="showTab('inscription')">Inscription</button>
+        <button class="tab active" onclick="showTab('connexion', this)">Connexion</button>
+        <button class="tab" onclick="showTab('inscription', this)">Inscription</button>
     </div>
 
-    <!-- Formulaire Connexion -->
     <div class="form active" id="connexion">
         <div class="field">
             <label>Email</label>
@@ -168,15 +67,10 @@
         <div class="message" id="login-message"></div>
     </div>
 
-    <!-- Formulaire Inscription -->
     <div class="form" id="inscription">
         <div class="role-select">
-            <div class="role-btn active" id="role-patient" onclick="setRole('patient')">
-                Patient
-            </div>
-            <div class="role-btn" id="role-therapeute" onclick="setRole('therapeute')">
-                Thérapeute
-            </div>
+            <div class="role-btn active" id="role-patient" onclick="setRole('patient')">Patient</div>
+            <div class="role-btn" id="role-therapeute" onclick="setRole('therapeute')">Thérapeute</div>
         </div>
         <div class="field">
             <label>Nom</label>
@@ -194,4 +88,93 @@
             <label>Mot de passe</label>
             <input type="password" id="reg-password" placeholder="••••••••">
         </div>
-        <button class="btn"
+        <button class="btn" onclick="inscrire()">Créer mon compte</button>
+        <div class="message" id="reg-message"></div>
+    </div>
+
+    <div class="back-link">
+        <a href="/">← Retour à l'accueil</a>
+    </div>
+</div>
+
+<script>
+    let roleActuel = "patient";
+
+    function showTab(tab, btn) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+        document.getElementById(tab).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function setRole(role) {
+        roleActuel = role;
+        document.getElementById('role-patient').classList.remove('active');
+        document.getElementById('role-therapeute').classList.remove('active');
+        document.getElementById('role-' + role).classList.add('active');
+    }
+
+    async function connecter() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const msg = document.getElementById('login-message');
+        if (!email || !password) {
+            msg.className = 'message error';
+            msg.textContent = 'Remplis tous les champs';
+            return;
+        }
+        try {
+            const response = await fetch('/auth/connexion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, mot_de_passe: password })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                msg.className = 'message success';
+                msg.textContent = 'Marhaba ' + data.prenom + ' !';
+                localStorage.setItem('user', JSON.stringify(data));
+                setTimeout(() => window.location.href = '/dashboard', 1500);
+            } else {
+                msg.className = 'message error';
+                msg.textContent = data.detail;
+            }
+        } catch(e) {
+            msg.className = 'message error';
+            msg.textContent = 'Erreur de connexion';
+        }
+    }
+
+    async function inscrire() {
+        const nom = document.getElementById('reg-nom').value;
+        const prenom = document.getElementById('reg-prenom').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const msg = document.getElementById('reg-message');
+        if (!nom || !prenom || !email || !password) {
+            msg.className = 'message error';
+            msg.textContent = 'Remplis tous les champs';
+            return;
+        }
+        try {
+            const response = await fetch('/auth/inscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nom, prenom, email, mot_de_passe: password, role: roleActuel })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                msg.className = 'message success';
+                msg.textContent = 'Compte créé ! Connecte-toi maintenant.';
+            } else {
+                msg.className = 'message error';
+                msg.textContent = data.detail;
+            }
+        } catch(e) {
+            msg.className = 'message error';
+            msg.textContent = 'Erreur de connexion';
+        }
+    }
+</script>
+</body>
+</html>

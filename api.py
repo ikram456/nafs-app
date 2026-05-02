@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi import HTTPException
 from pydantic import BaseModel
 from database import engine, Base, SessionLocal
@@ -8,11 +10,7 @@ from controllers.auth_controller import connecter_user, inscrire_user
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="Nafs App API",
-    description="Plateforme de santé mentale pour la communauté marocaine",
-    version="1.0.0"
-)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class LoginData(BaseModel):
     email: str
@@ -35,7 +35,31 @@ class InscriptionData(BaseModel):
 
 @app.get("/")
 def home():
-    return {"message": "Marhaba ! Nafs App est en ligne", "status": "ok"}
+    return FileResponse("static/index.html")
+
+@app.get("/login")
+def login():
+    return FileResponse("static/login.html")
+
+@app.get("/dashboard")
+def dashboard():
+    return FileResponse("static/dashboard.html")
+
+@app.get("/therapeutes")
+def therapeutes():
+    return FileResponse("static/therapeutes.html")
+
+@app.get("/reservation")
+def reservation():
+    return FileResponse("static/reservation.html")
+
+@app.get("/chat")
+def chat():
+    return FileResponse("static/chat.html")
+
+@app.get("/profil")
+def profil():
+    return FileResponse("static/profil.html")
 
 @app.post("/auth/connexion")
 def connexion(data: LoginData):

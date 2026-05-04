@@ -70,6 +70,32 @@ def video():
 
 @app.post("/api/video/creer-salle")
 async def creer_salle_video():
+    import urllib.request
+    import json
+    import ssl
+
+    url = "https://api.daily.co/v1/rooms"
+    headers = {
+        "Authorization": f"Bearer {DAILY_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = json.dumps({
+        "properties": {
+            "max_participants": 2,
+            "enable_chat": True,
+            "exp": 3600
+        }
+    }).encode('utf-8')
+
+    ctx = ssl.create_default_context()
+    req = urllib.request.Request(url, data=data, headers=headers, method='POST')
+    
+    try:
+        with urllib.request.urlopen(req, context=ctx) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            return {"url": result["url"], "name": result["name"]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     async with httpx.AsyncClient() as client:
         response = await client.post(
             "https://api.daily.co/v1/rooms",

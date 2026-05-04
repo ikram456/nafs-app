@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+JE VEUX QUE TU RECTIFIE LA FAUTE DANS CE CODE SANS CHANGER RIEN:<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -130,23 +130,20 @@
                 body: JSON.stringify({ email, mot_de_passe: password })
             });
             const data = await response.json();
-
-            if (response.ok) {
-                msg.className = 'message success';
-                msg.textContent = 'Marhaba ' + data.prenom + ' !';
-                localStorage.setItem('user', JSON.stringify(data));
-                setTimeout(() => {
-                    if (data.role === 'therapeute') {
-                        window.location.href = '/dashboard-therapeute';
-                    } else {
-                        window.location.href = '/dashboard';
-                    }
-                }, 1500);
-            } else {
+          if (response.ok) {
+    msg.className = 'message success';
+    msg.textContent = 'Marhaba ' + data.prenom + ' !';
+    localStorage.setItem('user', JSON.stringify(data));
+    setTimeout(() => {
+        if (data.role === 'therapeute') {
+            window.location.href = '/dashboard-therapeute';
+        } else {
+            window.location.href = '/dashboard';
+        }
+    }, 1500); else {
                 msg.className = 'message error';
                 msg.textContent = data.detail;
             }
-
         } catch(e) {
             msg.className = 'message error';
             msg.textContent = 'Erreur de connexion';

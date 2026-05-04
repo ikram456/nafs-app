@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nafs App - Panel Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+        .navbar {
+            background: #1a1a2e;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar .logo { font-size: 24px; font-weight: bold; }
+        .navbar .user-info { display: flex; align-items: center; gap: 15px; font-size: 14px; }
+        .navbar .badge { background: #e94560; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .logout-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+
+        .layout { display: flex; min-height: calc(100vh - 60px); }
+
+        .sidebar {
+            width: 240px;
+            background: #16213e;
+            padding: 25px 15px;
+        }
+        .sidebar .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .sidebar .menu-item:hover, .sidebar .menu-item.active {
+            background: rgba(233, 69, 96, 0.15);
+            color: #e94560;
+            font-weight: 600;
+        }
+        .sidebar .menu-item .icon { font-size: 18px; width: 24px; text-align: center; }
+        .sidebar-section { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; padding: 15px 15px 5px; font-weight: 700; }
+
+        .main { flex: 1; padding: 30px; }
+        .page-title { font-size: 22px; font-weight: bold; color: #1a1a2e; margin-bottom: 5px; }
+        .page-subtitle { color: #888; font-size: 14px; margin-bottom: 25px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #2D6A4F;
+        }
+        .stat-card.red { border-left-color: #e94560; }
+        .stat-card.blue { border-left-color: #4361ee; }
+        .stat-card.orange { border-left-color: #f4a261; }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .stat-icon { font-size: 24px; }
+        .stat-trend { font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+        .trend-up { background: #d4edda; color: #155724; }
+        .trend-down { background: #f8d7da; color: #721c24; }
+        .stat-value { font-size: 30px; font-weight: bold; color: #1a1a2e; }
+        .stat-label { font-size: 12px; color: #888; margin-top: 3px; }
+
+        .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-bottom: 25px; }
+
+        .section { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .section-title { font-size: 16px; font-weight: bold; color: #1a1a2e; }
+        .btn-sm { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-primary { background: #1a1a2e; color: white; }
+        .btn-success { background: #d4edda; color: #155724; }
+        .btn-danger { background: #f8d7da; color: #721c24; }
+        .btn-warning { background: #fff3cd; color: #856404; }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 10px 12px; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #f0f0f0; }
+        td { padding: 12px; font-size: 14px; color: #333; border-bottom: 1px solid #f5f5f5; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f9f9f9; }
+        .user-cell { display: flex; align-items: center; gap: 10px; }
+        .mini-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; color: white; flex-shrink: 0; }
+        .av-green { background: linear-gradient(135deg, #2D6A4F, #52B788); }
+        .av-blue { background: linear-gradient(135deg, #4361ee, #7289da); }
+        .av-red { background: linear-gradient(135deg, #e94560, #ff6b6b); }
+        .role-tag { padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .tag-patient { background: #e8f5e9; color: #2D6A4F; }
+        .tag-therapeute { background: #e8eaf6; color: #3949ab; }
+        .tag-admin { background: #fce4ec; color: #c62828; }
+        .status-tag { padding: 3px 10px; border-radius: 10px; font-size: 11px; }
+        .tag-actif { background: #d4edda; color: #155724; }
+        .tag-attente { background: #fff3cd; color: #856404; }
+        .tag-suspendu { background: #f8d7da; color: #721c24; }
+        .actions-cell { display: flex; gap: 5px; }
+
+        /* DEMANDES THERAPEUTES */
+        .demande-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .demande-item:last-child { border-bottom: none; }
+        .demande-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #4361ee, #7289da); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .demande-info .dname { font-weight: 600; font-size: 14px; }
+        .demande-info .ddetail { font-size: 12px; color: #888; margin-top: 2px; }
+        .demande-actions { margin-left: auto; display: flex; gap: 8px; }
+
+        /* ALERTES */
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .alert-item.warning { background: #fff3cd; color: #856404; }
+        .alert-item.info { background: #cce5ff; color: #004085; }
+        .alert-item.success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <div class="logo">نفس · Nafs — Admin</div>
+    <div class="user-info">
+        <span id="user-name">Administrateur</span>
+        <span class="badge">🛡️ Admin</span>
+        <button class="logout-btn" onclick="deconnecter()">Déconnexion</button>
+    </div>
+</div>
+
+<div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-section">Principal</div>
+        <a href="/dashboard-admin" class="menu-item active">
+            <span class="icon">📊</span> Tableau de bord
+        </a>
+        <a href="#" class="menu-item">
+            <span class="icon">👥</span> Utilisateurs
+        </a>
+        <a href="#" class="menu-item">
+            <span class="icon">👨‍⚕️</span> Thérapeutes
+        </a>
+        <a href="#" class="menu-item">
+            <span class="icon">📅</span> Séances
+        </a>
+
+        <div class="sidebar-section">Gestion</div>
+        <a href="#" class="menu-item">
+            <span class="icon">✅</span> Validations
+        </a>
+        <a href="#" class="menu-item">
+            <span class="icon">💰</span> Paiements
+        </a>
+        <a href="#" class="menu-item">
+            <span class="icon">📣</span> Notifications
+        </a>
+
+        <div class="sidebar-section">Système</div>
+        <a href="#" class="menu-item">
+            <span class="icon">⚙️</span> Paramètres
+        </a>
+        <a href="#" class="menu-item">
+            <span class="icon">📈</span> Rapports
+        </a>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+        <div class="page-title">Panel Administration 🛡️</div>
+        <div class="page-subtitle" id="date-label">Tableau de bord général</div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">👥</div>
+                    <span class="stat-trend trend-up">+12% ↑</span>
+                </div>
+                <div class="stat-value">248</div>
+                <div class="stat-label">Utilisateurs total</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-header">
+                    <div class="stat-icon">👨‍⚕️</div>
+                    <span class="stat-trend trend-up">+3 ↑</span>
+                </div>
+                <div class="stat-value">18</div>
+                <div class="stat-label">Thérapeutes actifs</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="stat-header">
+                    <div class="stat-icon">📅</div>
+                    <span class="stat-trend trend-up">+8% ↑</span>
+                </div>
+                <div class="stat-value">94</div>
+                <div class="stat-label">Séances ce mois</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-header">
+                    <div class="stat-icon">💰</div>
+                    <span class="stat-trend trend-up">+15% ↑</span>
+                </div>
+                <div class="stat-value">28 200</div>
+                <div class="stat-label">Revenus MAD</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <!-- UTILISATEURS RÉCENTS -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-title">👥 Utilisateurs récents</div>
+                    <button class="btn-sm btn-primary">Voir tous</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Utilisateur</th>
+                            <th>Rôle</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><div class="user-cell"><div class="mini-avatar av-green">F</div>Fatima Z.</div></td>
+                            <td><span class="role-tag tag-patient">Patient</span></td>
+                            <td><span class="status-tag tag-actif">Actif</span></td>
+                            <td><div class="actions-cell"><button class="btn-sm btn-warning">Voir</button><button class="btn-sm btn-danger">Bloquer</button></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="user-cell"><div class="mini-avatar av-blue">K</div>Dr. Karim F.</div></td>
+                            <td><span class="role-tag tag-therapeute">Thérapeute</span></td>
+                            <td><span class="status-tag tag-actif">Actif</span></td>
+                            <td><div class="actions-cell"><button class="btn-sm btn-warning">Voir</button><button class="btn-sm btn-danger">Bloquer</button></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="user-cell"><div class="mini-avatar av-green">A</div>Ahmed B.</div></td>
+                            <td><span class="role-tag tag-patient">Patient</span></td>
+                            <td><span class="status-tag tag-attente">En attente</span></td>
+                            <td><div class="actions-cell"><button class="btn-sm btn-success">Valider</button><button class="btn-sm btn-danger">Refuser</button></div></td>
+                        </tr>
+                        <tr>
+                            <td><div class="user-cell"><div class="mini-avatar av-red">S</div>Dr. Sara I.</div></td>
+                            <td><span class="role-tag tag-therapeute">Thérapeute</span></td>
+                            <td><span class="status-tag tag-attente">En attente</span></td>
+                            <td><div class="actions-cell"><button class="btn-sm btn-success">Valider</button><button class="btn-sm btn-danger">Refuser</button></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ALERTES & DEMANDES -->
+            <div>
+                <div class="section" style="margin-bottom: 25px;">
+                    <div class="section-title" style="margin-bottom: 15px;">🔔 Alertes système</div>
+                    <div class="alert-item warning">⚠️ 2 thérapeutes en attente de validation</div>
+                    <div class="alert-item info">ℹ️ 5 nouveaux inscrits aujourd'hui</div>
+                    <div class="alert-item success">✅ Base de données : OK</div>
+                    <div class="alert-item warning">⚠️ Firebase non configuré</div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title" style="margin-bottom: 15px;">👨‍⚕️ Demandes thérapeutes</div>
+                    <div class="demande-item">
+                        <div class="demande-avatar">S</div>
+                        <div class="demande-info">
+                            <div class="dname">Dr. Sara Idrissi</div>
+                            <div class="ddetail">Psychologue · Casablanca</div>
+                        </div>
+                        <div class="demande-actions">
+                            <button class="btn-sm btn-success">✅</button>
+                            <button class="btn-sm btn-danger">❌</button>
+                        </div>
+                    </div>
+                    <div class="demande-item">
+                        <div class="demande-avatar">O</div>
+                        <div class="demande-info">
+                            <div class="dname">Dr. Omar Tazi</div>
+                            <div class="ddetail">Psychiatre · Rabat</div>
+                        </div>
+                        <div class="demande-actions">
+                            <button class="btn-sm btn-success">✅</button>
+                            <button class="btn-sm btn-danger">❌</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user) {
+        window.location.href = '/login';
+    } else if (user.role !== 'admin') {
+        if (user.role === 'patient') window.location.href = '/dashboard-patient';
+        if (user.role === 'therapeute') window.location.href = '/dashboard-therapeute';
+    } else {
+        document.getElementById('user-name').textContent = user.prenom + ' ' + user.nom;
+    }
+
+    // Date du jour
+    const now = new Date();
+    document.getElementById('date-label').textContent =
+        now.toLocaleDateString('fr-MA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    function deconnecter() {
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+    }
+</script>
+</body>
+</html>

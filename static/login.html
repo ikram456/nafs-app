@@ -30,7 +30,7 @@
         .form.active { display: block; }
         .field { margin-bottom: 18px; }
         .field label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500; }
-        .field input, .field select { width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 14px; outline: none; }
+        .field input { width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 14px; outline: none; }
         .field input:focus { border-color: #2D6A4F; }
         .btn { width: 100%; padding: 14px; background: #2D6A4F; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn:hover { background: #1B4332; }
@@ -54,6 +54,7 @@
         <button class="tab" onclick="showTab('inscription', this)">Inscription</button>
     </div>
 
+    <!-- FORMULAIRE CONNEXION -->
     <div class="form active" id="connexion">
         <div class="field">
             <label>Email</label>
@@ -67,10 +68,11 @@
         <div class="message" id="login-message"></div>
     </div>
 
+    <!-- FORMULAIRE INSCRIPTION -->
     <div class="form" id="inscription">
         <div class="role-select">
-            <div class="role-btn active" id="role-patient" onclick="setRole('patient')">Patient</div>
-            <div class="role-btn" id="role-therapeute" onclick="setRole('therapeute')">Thérapeute</div>
+            <div class="role-btn active" id="role-patient" onclick="setRole('patient')">🧑 Patient</div>
+            <div class="role-btn" id="role-therapeute" onclick="setRole('therapeute')">👨‍⚕️ Thérapeute</div>
         </div>
         <div class="field">
             <label>Nom</label>
@@ -109,20 +111,32 @@
 
     function setRole(role) {
         roleActuel = role;
-        document.getElementById('role-patient').classList.remove('active');
-        document.getElementById('role-therapeute').classList.remove('active');
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('role-' + role).classList.add('active');
+    }
+
+    // Redirection selon le rôle
+    function redirigerSelonRole(role) {
+        if (role === 'admin') {
+            window.location.href = '/dashboard-admin';
+        } else if (role === 'therapeute') {
+            window.location.href = '/dashboard-therapeute';
+        } else {
+            window.location.href = '/dashboard-patient';
+        }
     }
 
     async function connecter() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         const msg = document.getElementById('login-message');
+
         if (!email || !password) {
             msg.className = 'message error';
             msg.textContent = 'Remplis tous les champs';
             return;
         }
+
         try {
             const response = await fetch('/auth/connexion', {
                 method: 'POST',
@@ -130,17 +144,13 @@
                 body: JSON.stringify({ email, mot_de_passe: password })
             });
             const data = await response.json();
-          if (response.ok) {
-    msg.className = 'message success';
-    msg.textContent = 'Marhaba ' + data.prenom + ' !';
-    localStorage.setItem('user', JSON.stringify(data));
-    setTimeout(() => {
-        if (data.role === 'therapeute') {
-            window.location.href = '/dashboard-therapeute';
-        } else {
-            window.location.href = '/dashboard';
-        }
-    }, 1500); else {
+
+            if (response.ok) {
+                msg.className = 'message success';
+                msg.textContent = 'Marhaba ' + data.prenom + ' !';
+                localStorage.setItem('user', JSON.stringify(data));
+                setTimeout(() => redirigerSelonRole(data.role), 1500);
+            } else {
                 msg.className = 'message error';
                 msg.textContent = data.detail;
             }
@@ -156,11 +166,13 @@
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
         const msg = document.getElementById('reg-message');
+
         if (!nom || !prenom || !email || !password) {
             msg.className = 'message error';
             msg.textContent = 'Remplis tous les champs';
             return;
         }
+
         try {
             const response = await fetch('/auth/inscription', {
                 method: 'POST',
@@ -168,9 +180,14 @@
                 body: JSON.stringify({ nom, prenom, email, mot_de_passe: password, role: roleActuel })
             });
             const data = await response.json();
+
             if (response.ok) {
                 msg.className = 'message success';
                 msg.textContent = 'Compte créé ! Connecte-toi maintenant.';
+                // Auto-switch vers connexion après 2s
+                setTimeout(() => {
+                    document.querySelectorAll('.tab')[0].click();
+                }, 2000);
             } else {
                 msg.className = 'message error';
                 msg.textContent = data.detail;

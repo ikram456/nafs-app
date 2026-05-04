@@ -36,6 +36,9 @@ class InscriptionData(BaseModel):
     mot_de_passe: str
     role: str = "patient"
 
+
+# ─── PAGES STATIQUES ───────────────────────────────────────────────────────────
+
 @app.get("/")
 def home():
     return FileResponse("static/index.html")
@@ -44,9 +47,26 @@ def home():
 def login():
     return FileResponse("static/login.html")
 
+# Ancienne route dashboard → redirige vers login (le JS redirige ensuite selon le rôle)
 @app.get("/dashboard")
 def dashboard():
-    return FileResponse("static/dashboard.html")
+    return FileResponse("static/login.html")
+
+# ─── DASHBOARDS PAR RÔLE ───────────────────────────────────────────────────────
+
+@app.get("/dashboard-patient")
+def dashboard_patient():
+    return FileResponse("static/dashboard-patient.html")
+
+@app.get("/dashboard-therapeute")
+def dashboard_therapeute():
+    return FileResponse("static/dashboard-therapeute.html")
+
+@app.get("/dashboard-admin")
+def dashboard_admin():
+    return FileResponse("static/dashboard-admin.html")
+
+# ─── AUTRES PAGES ──────────────────────────────────────────────────────────────
 
 @app.get("/therapeutes")
 def therapeutes():
@@ -67,6 +87,9 @@ def profil():
 @app.get("/video")
 def video():
     return FileResponse("static/video.html")
+
+
+# ─── API VIDÉO DAILY.CO ────────────────────────────────────────────────────────
 
 @app.post("/api/video/creer-salle")
 async def creer_salle_video():
@@ -89,58 +112,43 @@ async def creer_salle_video():
 
     ctx = ssl.create_default_context()
     req = urllib.request.Request(url, data=data, headers=headers, method='POST')
-    
+
     try:
         with urllib.request.urlopen(req, context=ctx) as response:
             result = json.loads(response.read().decode('utf-8'))
             return {"url": result["url"], "name": result["name"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://api.daily.co/v1/rooms",
-            headers={
-                "Authorization": f"Bearer {DAILY_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "properties": {
-                    "max_participants": 2,
-                    "enable_chat": True,
-                    "enable_screenshare": True,
-                    "exp": 3600
-                }
-            }
-        )
-        data = response.json()
-        return {"url": data["url"], "name": data["name"]}
+
+
+# ─── AUTH ──────────────────────────────────────────────────────────────────────
 
 @app.post("/auth/connexion")
 def connexion(data: LoginData):
     db = SessionLocal()
-    user, message = connecter_user(db, data.email, data.mot_de_passe)
+    result, message = connecter_user(db, data.email, data.mot_de_passe)
     db.close()
-    if not user:
+    if not result:
         raise HTTPException(status_code=400, detail=message)
     return {
         "message": "Connexion réussie",
-        "id": user.id,
-        "nom": user.nom,
-        "prenom": user.prenom,
-        "role": user.role
+        "id": result.id,
+        "nom": result.nom,
+        "prenom": result.prenom,
+        "role": result.role
     }
 
 @app.post("/auth/inscription")
 def inscription(data: InscriptionData):
     db = SessionLocal()
-    user, message = inscrire_user(db, data.nom, data.prenom, data.email, data.mot_de_passe, data.role)
+    result, message = inscrire_user(db, data.nom, data.prenom, data.email, data.mot_de_passe, data.role)
     db.close()
-    if not user:
+    if not result:
         raise HTTPException(status_code=400, detail=message)
     return {
         "message": "Inscription réussie",
-        "id": user.id,
-        "nom": user.nom,
-        "prenom": user.prenom,
-        "role": user.role
+        "id": result.id,
+        "nom": result.nom,
+        "prenom": result.prenom,
+        "role": result.role
     }

@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi import HTTPException
 from pydantic import BaseModel
+import httpx
 from database import engine, Base, SessionLocal
 from models import user, therapeute
 from controllers.auth_controller import connecter_user, inscrire_user
@@ -21,6 +22,8 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+DAILY_API_KEY = "282286f7928b1501d7d6bf2a71ea38400a9e20b5671ac3938761de4a1fd38953"
 
 class LoginData(BaseModel):
     email: str
@@ -60,6 +63,31 @@ def chat():
 @app.get("/profil")
 def profil():
     return FileResponse("static/profil.html")
+
+@app.get("/video")
+def video():
+    return FileResponse("static/video.html")
+
+@app.post("/api/video/creer-salle")
+async def creer_salle_video():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://api.daily.co/v1/rooms",
+            headers={
+                "Authorization": f"Bearer {DAILY_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "properties": {
+                    "max_participants": 2,
+                    "enable_chat": True,
+                    "enable_screenshare": True,
+                    "exp": 3600
+                }
+            }
+        )
+        data = response.json()
+        return {"url": data["url"], "name": data["name"]}
 
 @app.post("/auth/connexion")
 def connexion(data: LoginData):

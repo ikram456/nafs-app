@@ -130,7 +130,7 @@
                 body: JSON.stringify({ email, mot_de_passe: password })
             });
             const data = await response.json();
-           if (response.ok) {
+          if (response.ok) {
     msg.className = 'message success';
     msg.textContent = 'Marhaba ' + data.prenom + ' !';
     localStorage.setItem('user', JSON.stringify(data));
@@ -140,8 +140,7 @@
         } else {
             window.location.href = '/dashboard';
         }
-    }, 1500);
-            } else {
+    }, 1500); else {
                 msg.className = 'message error';
                 msg.textContent = data.detail;
             }

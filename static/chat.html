@@ -13,28 +13,37 @@
         .chat-container { display: flex; flex: 1; overflow: hidden; }
         .sidebar { width: 280px; background: white; border-right: 1px solid #e0e0e0; overflow-y: auto; flex-shrink: 0; }
         .sidebar-header { padding: 20px; font-weight: bold; color: #333; border-bottom: 1px solid #e0e0e0; }
-        .contact { padding: 15px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
+        .contact { padding: 15px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background 0.2s; }
         .contact:hover, .contact.active { background: #f0faf5; }
-        .contact .avatar { width: 45px; height: 45px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: bold; flex-shrink: 0; }
+        .contact .avatar { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: bold; flex-shrink: 0; }
         .contact .info h4 { color: #333; font-size: 14px; }
-        .contact .info p { color: #888; font-size: 12px; }
+        .contact .info p { color: #888; font-size: 12px; margin-top: 2px; }
         .contact .time { color: #aaa; font-size: 11px; margin-left: auto; }
         .chat-main { flex: 1; display: flex; flex-direction: column; }
         .chat-header { background: white; padding: 15px 25px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #e0e0e0; }
-        .chat-header .avatar { width: 45px; height: 45px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; font-weight: bold; }
+        .chat-header .avatar { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; font-weight: bold; }
         .chat-header h4 { color: #333; font-size: 15px; }
         .chat-header p { color: #2D6A4F; font-size: 12px; }
-        .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .message { display: flex; align-items: flex-end; gap: 10px; }
-        .message.sent { flex-direction: row-reverse; }
-        .message .avatar { width: 35px; height: 35px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 14px; color: white; font-weight: bold; flex-shrink: 0; }
-        .message.sent .avatar { background: #2D6A4F; }
-        .bubble { max-width: 60%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; }
-        .message.received .bubble { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.08); }
+        .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #f8f9fa; }
+        .message { display: flex; align-items: flex-end; gap: 8px; max-width: 70%; }
+        .message.sent { align-self: flex-end; flex-direction: row-reverse; }
+        .message.received { align-self: flex-start; }
+        .message .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: white; font-weight: bold; flex-shrink: 0; }
+        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+        .message.received .bubble { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
         .message.sent .bubble { background: #2D6A4F; color: white; border-bottom-right-radius: 4px; }
-        .input-area { background: white; padding: 15px 20px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #e0e0e0; }
-        .input-area input { flex: 1; padding: 12px 20px; border: 1px solid #e0e0e0; border-radius: 25px; font-size: 14px; outline: none; }
-        .btn-send { width: 45px; height: 45px; background: #2D6A4F; border: none; border-radius: 50%; cursor: pointer; color: white; font-size: 18px; }
+        .message .time { font-size: 10px; color: #aaa; margin: 0 4px 2px; align-self: flex-end; white-space: nowrap; }
+        .input-area { background: white; padding: 12px 20px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #e0e0e0; }
+        .input-area input { flex: 1; padding: 12px 18px; border: 1px solid #e0e0e0; border-radius: 25px; font-size: 14px; outline: none; transition: border 0.3s; }
+        .input-area input:focus { border-color: #2D6A4F; }
+        .btn-send { width: 44px; height: 44px; background: #2D6A4F; border: none; border-radius: 50%; cursor: pointer; color: white; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .btn-send:hover { background: #1B4332; }
+        .connexion-status { text-align: center; padding: 8px; font-size: 12px; color: #888; background: #fff3cd; }
+        .typing { font-size: 12px; color: #888; padding: 5px 20px; font-style: italic; }
+        .room-selector { padding: 10px 20px; background: #f0faf5; border-bottom: 1px solid #e0e0e0; }
+        .room-selector label { font-size: 12px; color: #555; margin-right: 8px; }
+        .room-selector input { padding: 6px 12px; border: 1px solid #e0e0e0; border-radius: 15px; font-size: 12px; outline: none; width: 200px; }
+        .room-selector button { padding: 6px 15px; background: #2D6A4F; color: white; border: none; border-radius: 15px; font-size: 12px; cursor: pointer; margin-left: 8px; }
     </style>
 </head>
 <body>
@@ -49,103 +58,186 @@
 
 <div class="chat-container">
     <div class="sidebar">
-        <div class="sidebar-header">💬 Messages</div>
-        <div class="contact active">
-            <div class="avatar">ف</div>
+        <div class="sidebar-header">💬 Conversations</div>
+        <div class="contact active" onclick="rejoindreRoom('fatima-zahra')">
+            <div class="avatar" style="background:#52B788;">ف</div>
             <div class="info">
                 <h4>Dr. Fatima Zahra</h4>
-                <p>Bonjour, comment allez-vous ?</p>
+                <p id="last-msg-1">Anxiété & Dépression</p>
             </div>
-            <div class="time">10:30</div>
         </div>
-        <div class="contact">
+        <div class="contact" onclick="rejoindreRoom('mohammed-alami')">
             <div class="avatar" style="background:#4A90D9;">م</div>
             <div class="info">
                 <h4>Dr. Mohammed Alami</h4>
-                <p>À demain pour notre séance</p>
+                <p>Thérapie de couple</p>
             </div>
-            <div class="time">Hier</div>
         </div>
-        <div class="contact">
+        <div class="contact" onclick="rejoindreRoom('sara-bennani')">
             <div class="avatar" style="background:#E76F51;">س</div>
             <div class="info">
                 <h4>Dr. Sara Bennani</h4>
-                <p>Merci pour la séance !</p>
+                <p>Trauma & PTSD</p>
             </div>
-            <div class="time">Lun</div>
         </div>
     </div>
 
     <div class="chat-main">
         <div class="chat-header">
-            <div class="avatar">ف</div>
+            <div class="avatar" id="chat-avatar" style="background:#52B788;">ف</div>
             <div>
-                <h4>Dr. Fatima Zahra Alaoui</h4>
-                <p>🟢 En ligne</p>
+                <h4 id="chat-name">Dr. Fatima Zahra Alaoui</h4>
+                <p id="chat-status">🟢 En ligne</p>
             </div>
         </div>
 
-        <div class="messages" id="messages">
-            <div class="message received">
-                <div class="avatar">ف</div>
-                <div class="bubble">Bonjour ! Comment vous sentez-vous aujourd'hui ?</div>
-            </div>
-            <div class="message sent">
-                <div class="avatar">أ</div>
-                <div class="bubble">Bonjour Docteur, je me sens un peu anxieux ces derniers jours.</div>
-            </div>
-            <div class="message received">
-                <div class="avatar">ف</div>
-                <div class="bubble">Je comprends. Pouvez-vous me décrire ce qui vous cause cette anxiété ?</div>
-            </div>
-            <div class="message sent">
-                <div class="avatar">أ</div>
-                <div class="bubble">C'est surtout le travail et les responsabilités familiales.</div>
-            </div>
-            <div class="message received">
-                <div class="avatar">ف</div>
-                <div class="bubble">C'est très courant. Nous allons travailler ensemble sur des techniques de gestion du stress. 💚</div>
-            </div>
+        <div class="room-selector">
+            <label>Ton nom :</label>
+            <input type="text" id="user-name-input" placeholder="Entre ton prénom...">
+            <button onclick="setUserName()">✓</button>
+            <span id="name-confirm" style="font-size:12px;color:#2D6A4F;margin-left:8px;"></span>
         </div>
+
+        <div class="connexion-status" id="status">🔄 Connexion à Firebase...</div>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="typing" id="typing"></div>
 
         <div class="input-area">
-            <input type="text" id="msg-input" placeholder="Écrire un message..." onkeypress="if(event.key==='Enter') envoyer()">
+            <input type="text" id="msg-input"
+                placeholder="Écrire un message..."
+                onkeypress="if(event.key==='Enter') envoyer()"
+                oninput="signalerTyping()">
             <button class="btn-send" onclick="envoyer()">➤</button>
         </div>
     </div>
 </div>
 
-<script>
-    const reponses = [
-        "Je comprends, continuez... 🌿",
-        "C'est très courant, ne vous inquiétez pas.",
-        "Pouvez-vous m'en dire plus ?",
-        "Je suis là pour vous aider. 💚",
-        "Ensemble nous allons travailler sur ça.",
-        "Prenez votre temps.",
-    ];
-    let idx = 0;
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, serverTimestamp, onDisconnect, set, get } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
 
-    function envoyer() {
-        const input = document.getElementById('msg-input');
-        const text = input.value.trim();
-        if (!text) return;
-        const messages = document.getElementById('messages');
-        const msg = document.createElement('div');
-        msg.className = 'message sent';
-        msg.innerHTML = '<div class="avatar">أ</div><div class="bubble">' + text + '</div>';
-        messages.appendChild(msg);
-        input.value = '';
-        messages.scrollTop = messages.scrollHeight;
-        setTimeout(() => {
-            const rep = document.createElement('div');
-            rep.className = 'message received';
-            rep.innerHTML = '<div class="avatar">ف</div><div class="bubble">' + reponses[idx % reponses.length] + '</div>';
-            messages.appendChild(rep);
-            messages.scrollTop = messages.scrollHeight;
-            idx++;
-        }, 1000);
+    const firebaseConfig = {
+        apiKey: "AIzaSyBELf2X80gX5XPOgKJptrQBUkaPJhUDlII",
+        authDomain: "nafs-46aca.firebaseapp.com",
+        databaseURL: "https://nafs-46aca-default-rtdb.firebaseio.com",
+        projectId: "nafs-46aca",
+        storageBucket: "nafs-46aca.firebasestorage.app",
+        messagingSenderId: "721268333924",
+        appId: "1:721268333924:web:812bf60d0072b819746e71"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let roomActuelle = 'fatima-zahra';
+    let monNom = localStorage.getItem('chat-nom') || '';
+    let unsubscribe = null;
+
+    if (monNom) {
+        document.getElementById('user-name-input').value = monNom;
+        document.getElementById('name-confirm').textContent = '✓ ' + monNom;
     }
+
+    window.setUserName = function() {
+        const nom = document.getElementById('user-name-input').value.trim();
+        if (!nom) return;
+        monNom = nom;
+        localStorage.setItem('chat-nom', nom);
+        document.getElementById('name-confirm').textContent = '✓ ' + nom;
+    }
+
+    window.rejoindreRoom = function(room) {
+        roomActuelle = room;
+        document.querySelectorAll('.contact').forEach(c => c.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        const noms = {
+            'fatima-zahra': 'Dr. Fatima Zahra Alaoui',
+            'mohammed-alami': 'Dr. Mohammed Alami',
+            'sara-bennani': 'Dr. Sara Bennani'
+        };
+        const avatars = {
+            'fatima-zahra': {lettre: 'ف', couleur: '#52B788'},
+            'mohammed-alami': {lettre: 'م', couleur: '#4A90D9'},
+            'sara-bennani': {lettre: 'س', couleur: '#E76F51'}
+        };
+
+        document.getElementById('chat-name').textContent = noms[room];
+        document.getElementById('chat-avatar').textContent = avatars[room].lettre;
+        document.getElementById('chat-avatar').style.background = avatars[room].couleur;
+        document.getElementById('messages').innerHTML = '';
+
+        chargerMessages(room);
+    }
+
+    function chargerMessages(room) {
+        if (unsubscribe) unsubscribe();
+        const messagesRef = ref(db, 'chats/' + room + '/messages');
+
+        unsubscribe = onValue(messagesRef, (snapshot) => {
+            document.getElementById('status').style.display = 'none';
+            const container = document.getElementById('messages');
+            container.innerHTML = '';
+
+            if (snapshot.exists()) {
+                const msgs = snapshot.val();
+                Object.values(msgs).forEach(msg => {
+                    afficherMessage(msg);
+                });
+                container.scrollTop = container.scrollHeight;
+            }
+        }, (error) => {
+            document.getElementById('status').textContent = '❌ Erreur de connexion';
+        });
+    }
+
+    function afficherMessage(msg) {
+        const container = document.getElementById('messages');
+        const estMoi = msg.auteur === monNom;
+        const div = document.createElement('div');
+        div.className = 'message ' + (estMoi ? 'sent' : 'received');
+
+        const heure = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) : '';
+
+        div.innerHTML = `
+            <div class="avatar" style="background:${estMoi ? '#2D6A4F' : '#52B788'}">
+                ${msg.auteur ? msg.auteur[0].toUpperCase() : '?'}
+            </div>
+            <div>
+                ${!estMoi ? `<div style="font-size:11px;color:#888;margin-bottom:2px">${msg.auteur}</div>` : ''}
+                <div class="bubble">${msg.texte}</div>
+                <div class="time">${heure}</div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    window.envoyer = function() {
+        if (!monNom) {
+            alert('Entre ton prénom d\'abord !');
+            document.getElementById('user-name-input').focus();
+            return;
+        }
+        const input = document.getElementById('msg-input');
+        const texte = input.value.trim();
+        if (!texte) return;
+
+        const messagesRef = ref(db, 'chats/' + roomActuelle + '/messages');
+        push(messagesRef, {
+            texte: texte,
+            auteur: monNom,
+            timestamp: Date.now()
+        });
+
+        input.value = '';
+    }
+
+    window.signalerTyping = function() {}
+
+    chargerMessages(roomActuelle);
+    document.getElementById('status').textContent = '🟢 Connecté en temps réel';
 </script>
 
 </body>

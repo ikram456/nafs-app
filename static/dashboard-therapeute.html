@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nafs App - Dashboard Thérapeute</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
+        .navbar {
+            background: #1B4332;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
+        .navbar .role-badge {
+            background: #52B788;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .navbar .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1B4332, #2D6A4F);
+            padding: 30px 40px;
+            color: white;
+        }
+        .hero h1 { font-size: 24px; margin-bottom: 5px; }
+        .hero p { opacity: 0.9; font-size: 14px; }
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            padding: 20px 40px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .stat {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .stat .number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2D6A4F;
+        }
+        .stat .label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .content { padding: 25px 40px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .section { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .section h3 { color: #333; font-size: 16px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .section h3 span { font-size: 12px; color: #2D6A4F; cursor: pointer; }
+        .patient-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; background: #f8f9fa; margin-bottom: 10px; }
+        .patient-card .avatar { width: 40px; height: 40px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; font-weight: bold; flex-shrink: 0; }
+        .patient-card .info { flex: 1; }
+        .patient-card .info h4 { color: #333; font-size: 14px; }
+        .patient-card .info p { color: #888; font-size: 12px; }
+        .patient-card .actions { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; border: none; border-radius: 15px; font-size: 12px; cursor: pointer; }
+        .btn-chat { background: #e8f5e9; color: #2D6A4F; }
+        .btn-video { background: #e3f2fd; color: #1565c0; }
+        .btn-confirm { background: #2D6A4F; color: white; }
+        .btn-cancel { background: #fce4ec; color: #c62828; }
+        .seance-card { padding: 12px; border-radius: 10px; background: #f8f9fa; margin-bottom: 10px; }
+        .seance-card .seance-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .seance-card .patient-name { font-weight: bold; color: #333; font-size: 14px; }
+        .seance-card .seance-time { color: #2D6A4F; font-size: 13px; font-weight: bold; }
+        .seance-card .seance-type { font-size: 12px; color: #888; }
+        .badge { padding: 3px 10px; border-radius: 10px; font-size: 11px; }
+        .badge-pending { background: #fff3e0; color: #e65100; }
+        .badge-confirmed { background: #e8f5e9; color: #2D6A4F; }
+        .menu-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .menu-card { background: white; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.06); text-decoration: none; display: block; transition: transform 0.2s; }
+        .menu-card:hover { transform: translateY(-3px); }
+        .menu-card .icon { font-size: 28px; margin-bottom: 8px; }
+        .menu-card h4 { color: #333; font-size: 14px; }
+        .menu-card p { color: #888; font-size: 12px; margin-top: 4px; }
+        .disponibilite { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .dispo-slot { padding: 6px 14px; border-radius: 15px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .dispo-slot.libre { background: #e8f5e9; color: #2D6A4F; border: 1px solid #52B788; }
+        .dispo-slot.occupe { background: #fce4ec; color: #c62828; border: 1px solid #ef9a9a; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div style="display:flex;align-items:center;">
+        <div class="logo">نفس</div>
+        <span class="role-badge">Thérapeute</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:15px;">
+        <div style="color:white;font-size:14px;" id="user-name">Bonjour !</div>
+        <button class="btn-logout" onclick="window.location.href='/'">Déconnexion</button>
+    </div>
+</nav>
+
+<div class="hero">
+    <h1 id="hero-title">Bonjour Docteur !</h1>
+    <p>Gérez vos patients et vos séances depuis votre tableau de bord</p>
+</div>
+
+<div class="stats-bar">
+    <div class="stat">
+        <div class="number">5</div>
+        <div class="label">Patients actifs</div>
+    </div>
+    <div class="stat">
+        <div class="number">3</div>
+        <div class="label">Séances aujourd'hui</div>
+    </div>
+    <div class="stat">
+        <div class="number">2</div>
+        <div class="label">En attente</div>
+    </div>
+    <div class="stat">
+        <div class="number">4.9 ⭐</div>
+        <div class="label">Note moyenne</div>
+    </div>
+</div>
+
+<div class="content">
+
+    <div class="menu-cards">
+        <a class="menu-card" href="/chat">
+            <div class="icon">💬</div>
+            <h4>Messages</h4>
+            <p>Chatter avec vos patients</p>
+        </a>
+        <a class="menu-card" href="/video">
+            <div class="icon">📹</div>
+            <h4>Démarrer vidéo</h4>
+            <p>Lancer une séance en ligne</p>
+        </a>
+        <a class="menu-card" href="/profil">
+            <div class="icon">👤</div>
+            <h4>Mon profil</h4>
+            <p>Gérer mes informations</p>
+        </a>
+    </div>
+
+    <div class="grid">
+        <div class="section">
+            <h3>Séances du jour <span onclick="window.location.href='/reservation'">Voir tout →</span></h3>
+
+            <div class="seance-card">
+                <div class="seance-header">
+                    <span class="patient-name">Ahmed Benali</span>
+                    <span class="badge badge-confirmed">Confirmée</span>
+                </div>
+                <div class="seance-time">09:00 — En ligne</div>
+                <div class="seance-type">Anxiété & Dépression</div>
+                <div style="margin-top:8px;display:flex;gap:8px;">
+                    <button class="btn-sm btn-chat" onclick="window.location.href='/chat'">💬 Chat</button>
+                    <button class="btn-sm btn-video" onclick="window.location.href='/video'">📹 Vidéo</button>
+                </div>
+            </div>
+
+            <div class="seance-card">
+                <div class="seance-header">
+                    <span class="patient-name">Sara Idrissi</span>
+                    <span class="badge badge-pending">En attente</span>
+                </div>
+                <div class="seance-time">11:00 — En cabinet</div>
+                <div class="seance-type">Stress & Burnout</div>
+                <div style="margin-top:8px;display:flex;gap:8px;">
+                    <button class="btn-sm btn-confirm">✅ Confirmer</button>
+                    <button class="btn-sm btn-cancel">❌ Refuser</button>
+                </div>
+            </div>
+
+            <div class="seance-card">
+                <div class="seance-header">
+                    <span class="patient-name">Karim Tazi</span>
+                    <span class="badge badge-confirmed">Confirmée</span>
+                </div>
+                <div class="seance-time">15:00 — En ligne</div>
+                <div class="seance-type">Thérapie de couple</div>
+                <div style="margin-top:8px;display:flex;gap:8px;">
+                    <button class="btn-sm btn-chat" onclick="window.location.href='/chat'">💬 Chat</button>
+                    <button class="btn-sm btn-video" onclick="window.location.href='/video'">📹 Vidéo</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Mes patients <span>Voir tout →</span></h3>
+
+            <div class="patient-card">
+                <div class="avatar">أ</div>
+                <div class="info">
+                    <h4>Ahmed Benali</h4>
+                    <p>Suivi depuis 3 mois</p>
+                </div>
+                <div class="actions">
+                    <button class="btn-sm btn-chat" onclick="window.location.href='/chat'">💬</button>
+                    <button class="btn-sm btn-video" onclick="window.location.href='/video'">📹</button>
+                </div>
+            </div>
+
+            <div class="patient-card">
+                <div class="avatar" style="background:#4A90D9;">س</div>
+                <div class="info">
+                    <h4>Sara Idrissi</h4>
+                    <p>Suivi depuis 1 mois</p>
+                </div>
+                <div class="actions">
+                    <button class="btn-sm btn-chat" onclick="window.location.href='/chat'">💬</button>
+                    <button class="btn-sm btn-video" onclick="window.location.href='/video'">📹</button>
+                </div>
+            </div>
+
+            <div class="patient-card">
+                <div class="avatar" style="background:#9B59B6;">ك</div>
+                <div class="info">
+                    <h4>Karim Tazi</h4>
+                    <p>Suivi depuis 6 mois</p>
+                </div>
+                <div class="actions">
+                    <button class="btn-sm btn-chat" onclick="window.location.href='/chat'">💬</button>
+                    <button class="btn-sm btn-video" onclick="window.location.href='/video'">📹</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Mes disponibilités</h3>
+        <div class="disponibilite">
+            <div class="dispo-slot libre">Lun 09:00</div>
+            <div class="dispo-slot occupe">Lun 10:00</div>
+            <div class="dispo-slot libre">Lun 11:00</div>
+            <div class="dispo-slot occupe">Lun 14:00</div>
+            <div class="dispo-slot libre">Mar 09:00</div>
+            <div class="dispo-slot libre">Mar 11:00</div>
+            <div class="dispo-slot occupe">Mer 10:00</div>
+            <div class="dispo-slot libre">Jeu 14:00</div>
+            <div class="dispo-slot libre">Ven 09:00</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.prenom) {
+        document.getElementById('user-name').textContent = 'Dr. ' + user.prenom;
+        document.getElementById('hero-title').textContent = 'Bonjour Dr. ' + user.prenom + ' !';
+    }
+    if (user.role !== 'therapeute') {
+        window.location.href = '/dashboard';
+    }
+</script>
+
+</body>
+</html>

@@ -130,11 +130,17 @@
                 body: JSON.stringify({ email, mot_de_passe: password })
             });
             const data = await response.json();
-            if (response.ok) {
-                msg.className = 'message success';
-                msg.textContent = 'Marhaba ' + data.prenom + ' !';
-                localStorage.setItem('user', JSON.stringify(data));
-                setTimeout(() => window.location.href = '/dashboard', 1500);
+           if (response.ok) {
+    msg.className = 'message success';
+    msg.textContent = 'Marhaba ' + data.prenom + ' !';
+    localStorage.setItem('user', JSON.stringify(data));
+    setTimeout(() => {
+        if (data.role === 'therapeute') {
+            window.location.href = '/dashboard-therapeute';
+        } else {
+            window.location.href = '/dashboard';
+        }
+    }, 1500);
             } else {
                 msg.className = 'message error';
                 msg.textContent = data.detail;

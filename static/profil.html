@@ -9,7 +9,7 @@
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
         .navbar { background: #2D6A4F; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
         .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
-        .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; }
+        .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; cursor: pointer; }
         .header { background: linear-gradient(135deg, #2D6A4F, #52B788); padding: 40px; text-align: center; color: white; }
         .avatar { width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 40px; color: white; font-weight: bold; margin: 0 auto 15px; border: 3px solid white; }
         .header h2 { font-size: 24px; margin-bottom: 5px; }
@@ -25,7 +25,12 @@
         .field label { display: block; font-size: 13px; color: #888; margin-bottom: 6px; }
         .field input { width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 14px; outline: none; }
         .field input:focus { border-color: #2D6A4F; }
+        .role-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+        .badge-patient { background: rgba(255,255,255,0.25); color: white; }
+        .badge-therapeute { background: rgba(255,255,255,0.25); color: white; }
+        .badge-admin { background: rgba(233,69,96,0.4); color: white; }
         .btn-save { width: 100%; padding: 14px; background: #2D6A4F; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .btn-dashboard { width: 100%; padding: 14px; background: #52B788; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
         .btn-logout { width: 100%; padding: 14px; background: #E63946; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
         .success { display: none; background: #d4edda; color: #155724; padding: 12px; border-radius: 10px; text-align: center; margin-top: 10px; font-size: 14px; }
     </style>
@@ -35,15 +40,16 @@
 <nav class="navbar">
     <div class="logo">نفس</div>
     <div>
-        <a href="/dashboard">Dashboard</a>
+        <a onclick="retourDashboard()">← Dashboard</a>
         <a href="/">Accueil</a>
     </div>
 </nav>
 
 <div class="header">
-    <div class="avatar" id="avatar-letter">ك</div>
+    <div class="avatar" id="avatar-letter">?</div>
     <h2 id="header-name">Mon Profil</h2>
-    <p>Patient — Membre depuis Mai 2026</p>
+    <p id="header-role">Membre depuis Mai 2026</p>
+    <div class="role-badge badge-patient" id="role-badge">Patient</div>
 </div>
 
 <div class="content">
@@ -84,23 +90,45 @@
         <div class="success" id="success-msg">✅ Profil mis à jour !</div>
     </div>
 
-    <button class="btn-logout" onclick="window.location.href='/'">Se déconnecter</button>
+    <button class="btn-dashboard" onclick="retourDashboard()">← Retour à mon espace</button>
+    <button class="btn-logout" onclick="deconnecter()">Se déconnecter</button>
 </div>
 
 <script>
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.nom) {
-        document.getElementById('nom').value = user.nom;
-        document.getElementById('prenom').value = user.prenom;
-        document.getElementById('email').value = user.email;
-        document.getElementById('header-name').textContent = user.prenom + ' ' + user.nom;
-        document.getElementById('avatar-letter').textContent = user.prenom[0];
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user) window.location.href = '/login';
+
+    // Remplir les infos
+    if (user) {
+        document.getElementById('nom').value = user.nom || '';
+        document.getElementById('prenom').value = user.prenom || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('header-name').textContent = (user.prenom || '') + ' ' + (user.nom || '');
+        document.getElementById('avatar-letter').textContent = user.prenom ? user.prenom[0].toUpperCase() : '?';
+
+        // Badge rôle
+        const roleBadge = document.getElementById('role-badge');
+        const roleLabels = { patient: '🧑 Patient', therapeute: '👨‍⚕️ Thérapeute', admin: '🛡️ Admin' };
+        roleBadge.textContent = roleLabels[user.role] || user.role;
+        document.getElementById('header-role').textContent = user.role + ' — Membre depuis Mai 2026';
+    }
+
+    function retourDashboard() {
+        if (!user) { window.location.href = '/login'; return; }
+        if (user.role === 'admin') window.location.href = '/dashboard-admin';
+        else if (user.role === 'therapeute') window.location.href = '/dashboard-therapeute';
+        else window.location.href = '/dashboard-patient';
     }
 
     function sauvegarder() {
         const msg = document.getElementById('success-msg');
         msg.style.display = 'block';
         setTimeout(() => msg.style.display = 'none', 3000);
+    }
+
+    function deconnecter() {
+        localStorage.removeItem('user');
+        window.location.href = '/login';
     }
 </script>
 

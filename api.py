@@ -241,3 +241,11 @@ def get_matching(patient_id: int):
         "therapeute_prenom": therapeute.prenom if therapeute else "",
         "room_id": f"patient{patient_id}_therapeute{matching.therapeute_id}"
     }
+    
+@app.get("/admin/supprimer-fake-therapeutes")
+def supprimer_fake():
+    db = SessionLocal()
+    db.query(User).filter(User.role == "therapeute").delete()
+    db.commit()
+    db.close()
+    return {"message": "Thérapeutes supprimés avec succès"}

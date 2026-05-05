@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nafs App - Suivi Humeur</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f4; min-height: 100vh; }
+
+        .navbar { background: #2D6A4F; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar .logo { color: white; font-size: 26px; font-weight: bold; }
+        .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; cursor: pointer; }
+
+        .main { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        .page-title { font-size: 24px; font-weight: bold; color: #1B4332; margin-bottom: 5px; }
+        .page-sub { font-size: 14px; color: #888; margin-bottom: 25px; }
+
+        /* CARTE DU JOUR */
+        .today-card { background: linear-gradient(135deg, #2D6A4F, #52B788); border-radius: 20px; padding: 30px; color: white; margin-bottom: 25px; }
+        .today-label { font-size: 13px; opacity: 0.85; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .today-date { font-size: 18px; font-weight: bold; margin-bottom: 25px; }
+        .humeur-titre { font-size: 15px; margin-bottom: 15px; opacity: 0.9; }
+        .humeurs-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .humeur-btn { width: 56px; height: 56px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-direction: column; }
+        .humeur-btn:hover { transform: scale(1.1); border-color: white; background: rgba(255,255,255,0.3); }
+        .humeur-btn.selected { border-color: white; background: rgba(255,255,255,0.35); transform: scale(1.15); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .humeur-score { font-size: 9px; margin-top: 2px; opacity: 0.8; }
+
+        .note-label { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+        .note-row { display: flex; gap: 8px; align-items: center; margin-bottom: 15px; }
+        .note-row input[type=range] { flex: 1; accent-color: white; }
+        .note-val { font-size: 18px; font-weight: bold; width: 30px; text-align: center; }
+
+        .commentaire-input { width: 100%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 12px 15px; color: white; font-size: 14px; font-family: inherit; resize: none; outline: none; }
+        .commentaire-input::placeholder { color: rgba(255,255,255,0.6); }
+        .commentaire-input:focus { border-color: white; background: rgba(255,255,255,0.2); }
+
+        .btn-enregistrer { width: 100%; padding: 14px; background: white; color: #2D6A4F; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: all 0.2s; }
+        .btn-enregistrer:hover { background: #f0faf5; }
+        .saved-msg { text-align: center; font-size: 13px; opacity: 0.9; margin-top: 10px; display: none; }
+
+        /* STATS */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .stat-emoji { font-size: 30px; margin-bottom: 8px; }
+        .stat-val { font-size: 22px; font-weight: bold; color: #2D6A4F; }
+        .stat-label { font-size: 12px; color: #888; margin-top: 3px; }
+
+        /* GRAPHIQUE */
+        .section { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .section-title { font-size: 16px; font-weight: bold; color: #1B4332; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .chart-container { position: relative; height: 160px; display: flex; align-items: flex-end; gap: 8px; padding-bottom: 25px; }
+        .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+        .chart-bar { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.5s ease; min-height: 4px; position: relative; cursor: pointer; }
+        .chart-bar:hover::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1B4332; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; white-space: nowrap; margin-bottom: 4px; }
+        .chart-label { font-size: 10px; color: #aaa; text-align: center; }
+        .chart-emoji { font-size: 14px; }
+
+        /* HISTORIQUE */
+        .historique-item { display: flex; align-items: center; gap: 15px; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+        .historique-item:last-child { border-bottom: none; }
+        .hi-date { font-size: 12px; color: #888; width: 80px; flex-shrink: 0; }
+        .hi-emoji { font-size: 24px; flex-shrink: 0; }
+        .hi-info { flex: 1; }
+        .hi-humeur { font-size: 14px; font-weight: 600; color: #333; }
+        .hi-comment { font-size: 12px; color: #888; margin-top: 2px; font-style: italic; }
+        .hi-score { font-size: 13px; font-weight: bold; color: #2D6A4F; flex-shrink: 0; }
+        .score-bar { height: 6px; background: #e8f5e9; border-radius: 10px; margin-top: 4px; overflow: hidden; }
+        .score-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #52B788, #2D6A4F); }
+
+        .empty-state { text-align: center; padding: 30px; color: #bbb; }
+        .empty-state .ei { font-size: 40px; margin-bottom: 10px; }
+
+        /* FILTRE */
+        .filtre-btns { display: flex; gap: 8px; }
+        .filtre-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid #e0e0e0; background: white; font-size: 12px; cursor: pointer; color: #555; }
+        .filtre-btn.active { background: #2D6A4F; color: white; border-color: #2D6A4F; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">نفس</div>
+    <div>
+        <a onclick="retourDashboard()">← Dashboard</a>
+        <a href="/">Accueil</a>
+    </div>
+</nav>
+
+<div class="main">
+    <div class="page-title">📊 Suivi de votre humeur</div>
+    <div class="page-sub">Enregistrez votre humeur chaque jour pour suivre votre évolution</div>
+
+    <!-- CARTE DU JOUR -->
+    <div class="today-card">
+        <div class="today-label">Aujourd'hui</div>
+        <div class="today-date" id="today-date"></div>
+
+        <div class="humeur-titre">Comment vous sentez-vous ?</div>
+        <div class="humeurs-row">
+            <div class="humeur-btn" onclick="selectHumeur(this, '😄', 'Très bien', 5)" data-val="5" title="Très bien">😄</div>
+            <div class="humeur-btn" onclick="selectHumeur(this, '🙂', 'Bien', 4)" data-val="4" title="Bien">🙂</div>
+            <div class="humeur-btn" onclick="selectHumeur(this, '😐', 'Neutre', 3)" data-val="3" title="Neutre">😐</div>
+            <div class="humeur-btn" onclick="selectHumeur(this, '😟', 'Pas bien', 2)" data-val="2" title="Pas bien">😟</div>
+            <div class="humeur-btn" onclick="selectHumeur(this, '😢', 'Très mal', 1)" data-val="1" title="Très mal">😢</div>
+        </div>
+
+        <div class="note-label">Niveau d'énergie : <span id="energie-val">5</span>/10</div>
+        <div class="note-row">
+            <span>🪫</span>
+            <input type="range" id="energie-slider" min="1" max="10" value="5" oninput="updateEnergie(this.value)">
+            <span>⚡</span>
+        </div>
+
+        <div class="note-label">Un mot sur votre journée ?</div>
+        <textarea class="commentaire-input" id="commentaire" rows="2" placeholder="Comment s'est passée votre journée ? (optionnel)"></textarea>
+
+        <button class="btn-enregistrer" onclick="enregistrer()">✅ Enregistrer mon humeur</button>
+        <div class="saved-msg" id="saved-msg">✓ Humeur enregistrée avec succès !</div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-emoji" id="stat-emoji-moy">😐</div>
+            <div class="stat-val" id="stat-moy">—</div>
+            <div class="stat-label">Humeur moyenne</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-emoji">🔥</div>
+            <div class="stat-val" id="stat-serie">0</div>
+            <div class="stat-label">Jours consécutifs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-emoji">📅</div>
+            <div class="stat-val" id="stat-total">0</div>
+            <div class="stat-label">Total enregistrements</div>
+        </div>
+    </div>
+
+    <!-- GRAPHIQUE -->
+    <div class="section">
+        <div class="section-title">
+            📈 Évolution des 7 derniers jours
+            <div class="filtre-btns">
+                <button class="filtre-btn active" onclick="setFiltre(7, this)">7j</button>
+                <button class="filtre-btn" onclick="setFiltre(14, this)">14j</button>
+                <button class="filtre-btn" onclick="setFiltre(30, this)">30j</button>
+            </div>
+        </div>
+        <div class="chart-container" id="chart"></div>
+    </div>
+
+    <!-- HISTORIQUE -->
+    <div class="section">
+        <div class="section-title">🗓️ Historique</div>
+        <div id="historique-liste">
+            <div class="empty-state">
+                <div class="ei">📭</div>
+                <p>Aucune entrée pour l'instant.<br>Enregistrez votre première humeur !</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user) window.location.href = '/login';
+
+    function retourDashboard() {
+        if (!user) { window.location.href = '/login'; return; }
+        if (user.role === 'admin') window.location.href = '/dashboard-admin';
+        else if (user.role === 'therapeute') window.location.href = '/dashboard-therapeute';
+        else window.location.href = '/dashboard-patient';
+    }
+
+    // Date du jour
+    const now = new Date();
+    document.getElementById('today-date').textContent = now.toLocaleDateString('fr-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    const humeurs = { 5: '😄', 4: '🙂', 3: '😐', 2: '😟', 1: '😢' };
+    const humeursLabel = { 5: 'Très bien', 4: 'Bien', 3: 'Neutre', 2: 'Pas bien', 1: 'Très mal' };
+    const couleurs = { 5: '#2D6A4F', 4: '#52B788', 3: '#95D5B2', 2: '#f4a261', 1: '#e76f51' };
+
+    let humeurSelectionnee = null;
+    let filtreDays = 7;
+
+    function selectHumeur(el, emoji, label, score) {
+        document.querySelectorAll('.humeur-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        humeurSelectionnee = { emoji, label, score };
+    }
+
+    function updateEnergie(val) {
+        document.getElementById('energie-val').textContent = val;
+    }
+
+    function getKey() {
+        return 'nafs_humeur_' + (user ? user.id : 'guest');
+    }
+
+    function getData() {
+        try { return JSON.parse(localStorage.getItem(getKey()) || '[]'); }
+        catch { return []; }
+    }
+
+    function enregistrer() {
+        if (!humeurSelectionnee) {
+            alert('Sélectionnez d\'abord une humeur !');
+            return;
+        }
+        const energie = parseInt(document.getElementById('energie-slider').value);
+        const commentaire = document.getElementById('commentaire').value.trim();
+        const dateStr = now.toISOString().split('T')[0];
+
+        const data = getData();
+        // Remplacer si déjà enregistré aujourd'hui
+        const idx = data.findIndex(e => e.date === dateStr);
+        const entry = { date: dateStr, ...humeurSelectionnee, energie, commentaire, ts: Date.now() };
+        if (idx >= 0) data[idx] = entry;
+        else data.push(entry);
+
+        localStorage.setItem(getKey(), JSON.stringify(data));
+
+        const msg = document.getElementById('saved-msg');
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+
+        actualiserUI();
+    }
+
+    function actualiserUI() {
+        const data = getData().sort((a, b) => new Date(b.date) - new Date(a.date));
+        afficherStats(data);
+        afficherGraphique(data, filtreDays);
+        afficherHistorique(data);
+        // Pré-remplir si déjà enregistré aujourd'hui
+        const today = now.toISOString().split('T')[0];
+        const todayEntry = data.find(e => e.date === today);
+        if (todayEntry) {
+            document.querySelectorAll('.humeur-btn').forEach(b => {
+                if (parseInt(b.dataset.val) === todayEntry.score) b.classList.add('selected');
+            });
+            document.getElementById('energie-slider').value = todayEntry.energie;
+            document.getElementById('energie-val').textContent = todayEntry.energie;
+            document.getElementById('commentaire').value = todayEntry.commentaire || '';
+            humeurSelectionnee = { emoji: todayEntry.emoji, label: todayEntry.label, score: todayEntry.score };
+        }
+    }
+
+    function afficherStats(data) {
+        document.getElementById('stat-total').textContent = data.length;
+        if (data.length === 0) return;
+
+        const moy = (data.reduce((s, e) => s + e.score, 0) / data.length).toFixed(1);
+        document.getElementById('stat-moy').textContent = moy + '/5';
+        document.getElementById('stat-emoji-moy').textContent = humeurs[Math.round(parseFloat(moy))];
+
+        // Série consécutive
+        let serie = 0;
+        const today = new Date();
+        for (let i = 0; i < 365; i++) {
+            const d = new Date(today); d.setDate(today.getDate() - i);
+            const ds = d.toISOString().split('T')[0];
+            if (data.find(e => e.date === ds)) serie++;
+            else break;
+        }
+        document.getElementById('stat-serie').textContent = serie;
+    }
+
+    function afficherGraphique(data, days) {
+        const chart = document.getElementById('chart');
+        chart.innerHTML = '';
+        const dates = [];
+        for (let i = days - 1; i >= 0; i--) {
+            const d = new Date(); d.setDate(d.getDate() - i);
+            dates.push(d.toISOString().split('T')[0]);
+        }
+        dates.forEach(dateStr => {
+            const entry = data.find(e => e.date === dateStr);
+            const score = entry ? entry.score : 0;
+            const pct = score ? (score / 5) * 100 : 0;
+            const d = new Date(dateStr);
+            const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+            const wrap = document.createElement('div');
+            wrap.className = 'chart-bar-wrap';
+            wrap.innerHTML = `
+                <div style="font-size:13px;height:20px;display:flex;align-items:center;">${entry ? entry.emoji : ''}</div>
+                <div class="chart-bar" style="height:${pct}%;background:${entry ? couleurs[score] : '#eee'};"
+                     data-tip="${entry ? entry.label + ' — ' + label : 'Aucune entrée'}"></div>
+                <div class="chart-label">${label}</div>
+            `;
+            chart.appendChild(wrap);
+        });
+    }
+
+    function afficherHistorique(data) {
+        const liste = document.getElementById('historique-liste');
+        if (data.length === 0) {
+            liste.innerHTML = `<div class="empty-state"><div class="ei">📭</div><p>Aucune entrée pour l'instant.<br>Enregistrez votre première humeur !</p></div>`;
+            return;
+        }
+        liste.innerHTML = data.slice(0, 20).map(e => {
+            const d = new Date(e.date).toLocaleDateString('fr-MA', { day: 'numeric', month: 'short' });
+            return `
+                <div class="historique-item">
+                    <div class="hi-date">${d}</div>
+                    <div class="hi-emoji">${e.emoji}</div>
+                    <div class="hi-info">
+                        <div class="hi-humeur">${e.label} · ⚡ Énergie ${e.energie}/10</div>
+                        ${e.commentaire ? `<div class="hi-comment">"${e.commentaire}"</div>` : ''}
+                        <div class="score-bar"><div class="score-fill" style="width:${e.score * 20}%"></div></div>
+                    </div>
+                    <div class="hi-score">${e.score}/5</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function setFiltre(days, btn) {
+        filtreDays = days;
+        document.querySelectorAll('.filtre-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        afficherGraphique(getData().sort((a, b) => new Date(b.date) - new Date(a.date)), days);
+    }
+
+    // Init
+    actualiserUI();
+</script>
+</body>
+</html>

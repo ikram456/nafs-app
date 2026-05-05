@@ -156,3 +156,88 @@ def inscription(data: InscriptionData):
         "prenom": result.prenom,
         "role": result.role
     }
+# En haut, ajoute ces imports
+from models.matching import Questionnaire, Matching
+from models.user import User
+
+# ─── ROUTES QUESTIONNAIRE & MATCHING ──────────────────────────
+
+class QuestionnaireData(BaseModel):
+    patient_id: int
+    problematique: str
+    langue: str
+    genre_therapeute: str
+    disponibilite: str
+
+@app.get("/questionnaire")
+def questionnaire():
+    return FileResponse("static/questionnaire.html")
+
+@app.post("/api/questionnaire")
+def soumettre_questionnaire(data: QuestionnaireData):
+    db = SessionLocal()
+    
+    # Vérifier si déjà soumis
+    existant = db.query(Questionnaire).filter(
+        Questionnaire.patient_id == data.patient_id
+    ).first()
+    if existant:
+        db.close()
+        return {"message": "Questionnaire déjà soumis", "deja_fait": True}
+    
+    # Sauvegarder questionnaire
+    q = Questionnaire(
+        patient_id=data.patient_id,
+        problematique=data.problematique,
+        langue=data.langue,
+        genre_therapeute=data.genre_therapeute,
+        disponibilite=data.disponibilite
+    )
+    db.add(q)
+    db.commit()
+    
+    # Algorithme de matching simple
+    # Cherche un thérapeute avec role="therapeute"
+    therapeutes = db.query(User).filter(User.role == "therapeute").all()
+    therapeute_choisi = therapeutes[0] if therapeutes else None
+    
+    if therapeute_choisi:
+        matching = Matching(
+            patient_id=data.patient_id,
+            therapeute_id=therapeute_choisi.id
+        )
+        db.add(matching)
+        db.commit()
+        db.refresh(matching)
+        db.close()
+        return {
+            "message": "Matching trouvé",
+            "therapeute_id": therapeute_choisi.id,
+            "therapeute_nom": therapeute_choisi.nom,
+            "therapeute_prenom": therapeute_choisi.prenom
+        }
+    
+    db.close()
+    return {"message": "Aucun thérapeute disponible", "therapeute_id": None}
+
+@app.get("/api/matching/{patient_id}")
+def get_matching(patient_id: int):
+    db = SessionLocal()
+    matching = db.query(Matching).filter(
+        Matching.patient_id == patient_id
+    ).first()
+    if not matching:
+        db.close()
+        raise HTTPException(status_code=404, detail="Pas de matching")
+    
+    therapeute = db.query(User).filter(
+        User.id == matching.therapeute_id
+    ).first()
+    db.close()
+    
+    return {
+        "therapeute_id": matching.therapeute_id,
+        "therapeute_nom": therapeute.nom if therapeute else "Inconnu",
+        "therapeute_prenom": therapeute.prenom if therapeute else "",
+        "room_id": f"patient{patient_id}_therapeute{matching.therapeute_id}"
+    }

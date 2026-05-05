@@ -60,12 +60,12 @@
         <div class="question visible" id="q1">
             <h3>1. Quelle est votre principale préoccupation ?</h3>
             <div class="options">
-                <div class="option" onclick="select(this,'problematique','anxiete')">😰 Anxiété / Stress</div>
-                <div class="option" onclick="select(this,'problematique','depression')">😔 Dépression</div>
-                <div class="option" onclick="select(this,'problematique','couple')">💑 Relation de couple</div>
-                <div class="option" onclick="select(this,'problematique','trauma')">🧠 Trauma / PTSD</div>
-                <div class="option" onclick="select(this,'problematique','famille')">👨‍👩‍👧 Problèmes familiaux</div>
-                <div class="option" onclick="select(this,'problematique','autre')">💬 Autre</div>
+                <div class="option" onclick="choisir(this,'problematique','anxiete')">😰 Anxiété / Stress</div>
+                <div class="option" onclick="choisir(this,'problematique','depression')">😔 Dépression</div>
+                <div class="option" onclick="choisir(this,'problematique','couple')">💑 Relation de couple</div>
+                <div class="option" onclick="choisir(this,'problematique','trauma')">🧠 Trauma / PTSD</div>
+                <div class="option" onclick="choisir(this,'problematique','famille')">👨‍👩‍👧 Problèmes familiaux</div>
+                <div class="option" onclick="choisir(this,'problematique','autre')">💬 Autre</div>
             </div>
         </div>
 
@@ -73,10 +73,10 @@
         <div class="question" id="q2">
             <h3>2. Quelle langue préférez-vous pour vos séances ?</h3>
             <div class="options">
-                <div class="option" onclick="select(this,'langue','arabe')">🇲🇦 Darija / Arabe</div>
-                <div class="option" onclick="select(this,'langue','francais')">🇫🇷 Français</div>
-                <div class="option" onclick="select(this,'langue','amazigh')">ⴰⵣⴰⵡⴰⵏ Amazigh</div>
-                <div class="option" onclick="select(this,'langue','indifferent')">🌍 Peu importe</div>
+                <div class="option" onclick="choisir(this,'langue','arabe')">🇲🇦 Darija / Arabe</div>
+                <div class="option" onclick="choisir(this,'langue','francais')">🇫🇷 Français</div>
+                <div class="option" onclick="choisir(this,'langue','amazigh')">ⴰⵣⴰⵡⴰⵏ Amazigh</div>
+                <div class="option" onclick="choisir(this,'langue','indifferent')">🌍 Peu importe</div>
             </div>
         </div>
 
@@ -84,9 +84,9 @@
         <div class="question" id="q3">
             <h3>3. Préférez-vous un thérapeute d'un genre particulier ?</h3>
             <div class="options">
-                <div class="option" onclick="select(this,'genre_therapeute','femme')">👩 Femme</div>
-                <div class="option" onclick="select(this,'genre_therapeute','homme')">👨 Homme</div>
-                <div class="option" onclick="select(this,'genre_therapeute','indifferent')">🤝 Peu importe</div>
+                <div class="option" onclick="choisir(this,'genre_therapeute','femme')">👩 Femme</div>
+                <div class="option" onclick="choisir(this,'genre_therapeute','homme')">👨 Homme</div>
+                <div class="option" onclick="choisir(this,'genre_therapeute','indifferent')">🤝 Peu importe</div>
             </div>
         </div>
 
@@ -94,10 +94,10 @@
         <div class="question" id="q4">
             <h3>4. Quand êtes-vous disponible ?</h3>
             <div class="options">
-                <div class="option" onclick="select(this,'disponibilite','matin')">🌅 Matin</div>
-                <div class="option" onclick="select(this,'disponibilite','apres-midi')">☀️ Après-midi</div>
-                <div class="option" onclick="select(this,'disponibilite','soir')">🌙 Soir</div>
-                <div class="option" onclick="select(this,'disponibilite','weekend')">📅 Weekend</div>
+                <div class="option" onclick="choisir(this,'disponibilite','matin')">🌅 Matin</div>
+                <div class="option" onclick="choisir(this,'disponibilite','apres-midi')">☀️ Après-midi</div>
+                <div class="option" onclick="choisir(this,'disponibilite','soir')">🌙 Soir</div>
+                <div class="option" onclick="choisir(this,'disponibilite','weekend')">📅 Weekend</div>
             </div>
         </div>
 
@@ -112,7 +112,7 @@
             <div class="avatar" id="result-avatar">?</div>
             <h3 id="result-nom">Votre thérapeute</h3>
             <p id="result-msg">Nous avons trouvé le thérapeute qui correspond à votre profil 🎉</p>
-            <button class="btn-chat" id="btn-action" onclick="allerAuChat()">💬 Commencer à chatter</button>
+            <button class="btn-chat" id="btn-action">💬 Commencer à chatter</button>
         </div>
 
         <div class="nav-btns" id="nav-btns">
@@ -130,7 +130,7 @@
     const total = 4;
     const reponses = {};
 
-    function select(el, key, val) {
+    function choisir(el, key, val) {
         el.closest('.options').querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
         el.classList.add('selected');
         reponses[key] = val;
@@ -182,7 +182,7 @@
             document.getElementById('result').style.display = 'block';
 
             if (data.therapeute_id) {
-                // ✅ Match trouvé → sauvegarder et aller au chat
+                // ✅ Match trouvé
                 localStorage.setItem('matching', JSON.stringify({
                     therapeute_id: data.therapeute_id,
                     therapeute_nom: data.therapeute_nom,
@@ -196,7 +196,7 @@
                 document.getElementById('btn-action').textContent = '💬 Commencer à chatter';
                 document.getElementById('btn-action').onclick = () => window.location.href = '/chat';
             } else {
-                // ❌ Pas de match → rediriger vers liste des thérapeutes
+                // ❌ Pas de match → liste thérapeutes
                 document.getElementById('result-avatar').textContent = '👨‍⚕️';
                 document.getElementById('result-avatar').style.fontSize = '36px';
                 document.getElementById('result-nom').textContent = 'Pas de match automatique';
@@ -206,9 +206,17 @@
             }
 
         } catch(e) {
-            // Erreur réseau → aussi rediriger vers liste
+            // Erreur → liste thérapeutes
             document.getElementById('loading').style.display = 'none';
             document.getElementById('result').style.display = 'block';
             document.getElementById('result-avatar').textContent = '👨‍⚕️';
             document.getElementById('result-avatar').style.fontSize = '36px';
-            document.getElementById('result-nom').textContent = 'C
+            document.getElementById('result-nom').textContent = 'Choisissez votre thérapeute';
+            document.getElementById('result-msg').textContent = 'Parcourez notre liste de thérapeutes disponibles.';
+            document.getElementById('btn-action').textContent = '👨‍⚕️ Voir les thérapeutes';
+            document.getElementById('btn-action').onclick = () => window.location.href = '/therapeutes';
+        }
+    }
+</script>
+</body>
+</html>

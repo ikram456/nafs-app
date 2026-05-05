@@ -174,12 +174,23 @@
         }
 
         try {
-            const response = await fetch('/auth/inscription', {
+            const res = await fetch('/auth/inscription', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nom, prenom, email, mot_de_passe: password, role: roleActuel })
-            });
-            const data = await response.json();
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({...})
+});
+            const data = await res.json();
+
+// ✅ Sauvegarder l'utilisateur directement
+            localStorage.setItem('user', JSON.stringify({
+                id: data.id,
+                nom: data.nom,
+                prenom: data.prenom,
+                role: data.role
+}));
+
+// ✅ Rediriger vers le questionnaire directement
+            window.location.href = '/questionnaire';
 
             if (response.ok) {
                 msg.className = 'message success';

@@ -326,6 +326,20 @@
         btn.classList.add('selected');
         // Ici on pourra sauvegarder l'humeur en base plus tard
     }
+    // À ajouter dans le <script> du dashboard-patient.html
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (!user) window.location.href = '/login';
+
+// Vérifier si le patient a un matching
+const matching = localStorage.getItem('matching');
+if (!matching) {
+    // Première connexion → aller au questionnaire
+    // (optionnel : afficher une bannière plutôt que rediriger)
+    const banner = document.createElement('div');
+    banner.style = 'background:#fff3cd;padding:12px 20px;text-align:center;font-size:14px;';
+    banner.innerHTML = '⚠️ Complétez votre questionnaire pour trouver votre thérapeute → <a href="/questionnaire" style="color:#2D6A4F;font-weight:bold">Commencer</a>';
+    document.body.insertBefore(banner, document.body.firstChild);
+}
 </script>
 </body>
 </html>

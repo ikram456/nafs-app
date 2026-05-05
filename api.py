@@ -249,3 +249,17 @@ def supprimer_fake():
     db.commit()
     db.close()
     return {"message": "Thérapeutes supprimés avec succès"}
+
+@app.get("/api/therapeutes")
+def get_therapeutes():
+    db = SessionLocal()
+    therapeutes = db.query(User).filter(User.role == "therapeute").all()
+    db.close()
+    return [
+        {
+            "id": t.id,
+            "nom": t.nom,
+            "prenom": t.prenom,
+        }
+        for t in therapeutes
+    ]

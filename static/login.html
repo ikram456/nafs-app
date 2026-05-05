@@ -121,13 +121,8 @@
         } else if (role === 'therapeute') {
             window.location.href = '/dashboard-therapeute';
         } else {
-            // Patient → questionnaire si pas encore fait
-            const matching = localStorage.getItem('matching');
-            if (!matching) {
-                window.location.href = '/questionnaire';
-            } else {
-                window.location.href = '/dashboard-patient';
-            }
+            // Patient → toujours questionnaire d'abord
+            window.location.href = '/questionnaire';
         }
     }
 
@@ -135,91 +130,3 @@
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         const msg = document.getElementById('login-message');
-
-        if (!email || !password) {
-            msg.className = 'message error';
-            msg.textContent = 'Remplis tous les champs';
-            return;
-        }
-
-        try {
-            const response = await fetch('/auth/connexion', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, mot_de_passe: password })
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                msg.className = 'message success';
-                msg.textContent = 'Marhaba ' + data.prenom + ' !';
-                localStorage.setItem('user', JSON.stringify({
-                    id: data.id,
-                    nom: data.nom,
-                    prenom: data.prenom,
-                    role: data.role
-                }));
-                setTimeout(() => redirigerSelonRole(data.role), 1500);
-            } else {
-                msg.className = 'message error';
-                msg.textContent = data.detail;
-            }
-        } catch(e) {
-            msg.className = 'message error';
-            msg.textContent = 'Erreur de connexion';
-        }
-    }
-
-    async function inscrire() {
-        const nom = document.getElementById('reg-nom').value;
-        const prenom = document.getElementById('reg-prenom').value;
-        const email = document.getElementById('reg-email').value;
-        const password = document.getElementById('reg-password').value;
-        const msg = document.getElementById('reg-message');
-
-        if (!nom || !prenom || !email || !password) {
-            msg.className = 'message error';
-            msg.textContent = 'Remplis tous les champs';
-            return;
-        }
-
-        try {
-            const response = await fetch('/auth/inscription', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    nom,
-                    prenom,
-                    email,
-                    mot_de_passe: password,
-                    role: roleActuel
-                })
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                // ✅ Sauvegarder dans localStorage
-                localStorage.setItem('user', JSON.stringify({
-                    id: data.id,
-                    nom: data.nom,
-                    prenom: data.prenom,
-                    role: data.role
-                }));
-
-                msg.className = 'message success';
-                msg.textContent = 'Compte créé ! Redirection...';
-
-                // ✅ Rediriger selon le rôle
-                setTimeout(() => redirigerSelonRole(data.role), 1000);
-            } else {
-                msg.className = 'message error';
-                msg.textContent = data.detail;
-            }
-        } catch(e) {
-            msg.className = 'message error';
-            msg.textContent = 'Erreur de connexion';
-        }
-    }
-</script>
-</body>
-</html>

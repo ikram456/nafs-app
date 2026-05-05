@@ -263,3 +263,25 @@ def get_therapeutes():
         }
         for t in therapeutes
     ]
+    
+@app.get("/chat-therapeute")
+def chat_therapeute():
+    return FileResponse("static/chat-therapeute.html")
+
+@app.get("/api/mes-patients/{therapeute_id}")
+def get_mes_patients(therapeute_id: int):
+    db = SessionLocal()
+    matchings = db.query(Matching).filter(
+        Matching.therapeute_id == therapeute_id
+    ).all()
+    patients = []
+    for m in matchings:
+        patient = db.query(User).filter(User.id == m.patient_id).first()
+        if patient:
+            patients.append({
+                "id": patient.id,
+                "nom": patient.nom,
+                "prenom": patient.prenom
+            })
+    db.close()
+    return patients

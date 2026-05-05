@@ -115,14 +115,19 @@
         document.getElementById('role-' + role).classList.add('active');
     }
 
-    // Redirection selon le rôle
     function redirigerSelonRole(role) {
         if (role === 'admin') {
             window.location.href = '/dashboard-admin';
         } else if (role === 'therapeute') {
             window.location.href = '/dashboard-therapeute';
         } else {
-            window.location.href = '/dashboard-patient';
+            // Patient → questionnaire si pas encore fait
+            const matching = localStorage.getItem('matching');
+            if (!matching) {
+                window.location.href = '/questionnaire';
+            } else {
+                window.location.href = '/dashboard-patient';
+            }
         }
     }
 
@@ -148,7 +153,12 @@
             if (response.ok) {
                 msg.className = 'message success';
                 msg.textContent = 'Marhaba ' + data.prenom + ' !';
-                localStorage.setItem('user', JSON.stringify(data));
+                localStorage.setItem('user', JSON.stringify({
+                    id: data.id,
+                    nom: data.nom,
+                    prenom: data.prenom,
+                    role: data.role
+                }));
                 setTimeout(() => redirigerSelonRole(data.role), 1500);
             } else {
                 msg.className = 'message error';
@@ -174,31 +184,33 @@
         }
 
         try {
-            const res = await fetch('/auth/inscription', {
+            const response = await fetch('/auth/inscription', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({...})
-});
-            const data = await res.json();
-
-// ✅ Sauvegarder l'utilisateur directement
-            localStorage.setItem('user', JSON.stringify({
-                id: data.id,
-                nom: data.nom,
-                prenom: data.prenom,
-                role: data.role
-}));
-
-// ✅ Rediriger vers le questionnaire directement
-            window.location.href = '/questionnaire';
+                body: JSON.stringify({
+                    nom,
+                    prenom,
+                    email,
+                    mot_de_passe: password,
+                    role: roleActuel
+                })
+            });
+            const data = await response.json();
 
             if (response.ok) {
+                // ✅ Sauvegarder dans localStorage
+                localStorage.setItem('user', JSON.stringify({
+                    id: data.id,
+                    nom: data.nom,
+                    prenom: data.prenom,
+                    role: data.role
+                }));
+
                 msg.className = 'message success';
-                msg.textContent = 'Compte créé ! Connecte-toi maintenant.';
-                // Auto-switch vers connexion après 2s
-                setTimeout(() => {
-                    document.querySelectorAll('.tab')[0].click();
-                }, 2000);
+                msg.textContent = 'Compte créé ! Redirection...';
+
+                // ✅ Rediriger selon le rôle
+                setTimeout(() => redirigerSelonRole(data.role), 1000);
             } else {
                 msg.className = 'message error';
                 msg.textContent = data.detail;

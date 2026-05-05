@@ -65,6 +65,10 @@ def dashboard_therapeute():
 @app.get("/dashboard-admin")
 def dashboard_admin():
     return FileResponse("static/dashboard-admin.html")
+    
+@app.get("/matching")
+def matching():
+    return FileResponse("static/matching.html")
 
 # ─── AUTRES PAGES ──────────────────────────────────────────────────────────────
 

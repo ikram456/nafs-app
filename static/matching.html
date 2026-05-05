@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nafs App - Trouver mon thérapeute</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #f0faf5, #e8f5e9); min-height: 100vh; }
+
+        .navbar { background: #2D6A4F; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar .logo { color: white; font-size: 26px; font-weight: bold; }
+        .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; cursor: pointer; }
+
+        .progress-bar-container { background: white; padding: 15px 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .progress-info { display: flex; justify-content: space-between; font-size: 13px; color: #888; margin-bottom: 8px; }
+        .progress-track { height: 6px; background: #e0e0e0; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #2D6A4F, #52B788); border-radius: 10px; transition: width 0.4s ease; }
+
+        .main { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+
+        .intro { text-align: center; padding: 60px 40px; background: white; border-radius: 20px; box-shadow: 0 5px 30px rgba(0,0,0,0.08); }
+        .intro .icon { font-size: 60px; margin-bottom: 20px; }
+        .intro h1 { font-size: 28px; color: #1B4332; margin-bottom: 12px; }
+        .intro p { color: #666; font-size: 16px; line-height: 1.6; max-width: 450px; margin: 0 auto 30px; }
+        .btn-start { background: #2D6A4F; color: white; border: none; padding: 16px 40px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .btn-start:hover { background: #1B4332; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(45,106,79,0.3); }
+
+        .question-card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 5px 30px rgba(0,0,0,0.08); animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .question-num { font-size: 13px; color: #52B788; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .question-text { font-size: 22px; color: #1B4332; font-weight: bold; margin-bottom: 8px; line-height: 1.4; }
+        .question-desc { font-size: 14px; color: #888; margin-bottom: 30px; }
+
+        .options { display: flex; flex-direction: column; gap: 12px; }
+        .option { padding: 16px 20px; border: 2px solid #e8f5e9; border-radius: 12px; background: white; cursor: pointer; font-size: 15px; color: #333; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+        .option:hover { border-color: #52B788; background: #f0faf5; }
+        .option.selected { border-color: #2D6A4F; background: #f0faf5; color: #1B4332; font-weight: 600; }
+        .option .opt-icon { font-size: 22px; width: 30px; text-align: center; flex-shrink: 0; }
+        .option .opt-check { margin-left: auto; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ddd; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.2s; flex-shrink: 0; }
+        .option.selected .opt-check { background: #2D6A4F; border-color: #2D6A4F; color: white; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .option-grid { padding: 20px 15px; border: 2px solid #e8f5e9; border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .option-grid:hover { border-color: #52B788; background: #f0faf5; }
+        .option-grid.selected { border-color: #2D6A4F; background: #f0faf5; }
+        .option-grid .og-icon { font-size: 28px; margin-bottom: 8px; }
+        .option-grid .og-label { font-size: 14px; color: #333; font-weight: 500; }
+
+        .nav-btns { display: flex; justify-content: space-between; margin-top: 30px; }
+        .btn-prev { background: #f0f0f0; color: #555; border: none; padding: 12px 25px; border-radius: 25px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-next { background: #2D6A4F; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .btn-next:hover { background: #1B4332; }
+        .btn-next:disabled { background: #ccc; cursor: not-allowed; }
+
+        .loading { text-align: center; padding: 60px; background: white; border-radius: 20px; box-shadow: 0 5px 30px rgba(0,0,0,0.08); }
+        .spinner { width: 60px; height: 60px; border: 5px solid #e8f5e9; border-top-color: #2D6A4F; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .results { animation: fadeIn 0.5s ease; }
+        .results-header { text-align: center; background: white; border-radius: 20px; padding: 40px; box-shadow: 0 5px 30px rgba(0,0,0,0.08); margin-bottom: 30px; }
+        .results-header h2 { font-size: 26px; color: #1B4332; margin-bottom: 8px; }
+
+        .best-match { background: linear-gradient(135deg, #2D6A4F, #52B788); border-radius: 20px; padding: 30px; color: white; margin-bottom: 25px; position: relative; overflow: hidden; }
+        .best-match::before { content: '⭐ MEILLEUR MATCH'; position: absolute; top: 15px; right: 20px; font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; }
+        .bm-avatar { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin-bottom: 15px; border: 3px solid rgba(255,255,255,0.5); }
+        .best-match h3 { font-size: 22px; margin-bottom: 5px; }
+        .bm-specialite { font-size: 14px; opacity: 0.85; margin-bottom: 15px; }
+        .compatibility-bar { background: rgba(255,255,255,0.2); border-radius: 10px; height: 8px; margin-bottom: 5px; overflow: hidden; }
+        .compatibility-fill { height: 100%; background: white; border-radius: 10px; }
+        .compatibility-label { font-size: 13px; opacity: 0.9; margin-bottom: 20px; }
+        .bm-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .bm-tag { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .btn-reserver { background: white; color: #2D6A4F; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; font-size: 14px; cursor: pointer; }
+
+        .autres-title { font-size: 18px; font-weight: bold; color: #1B4332; margin-bottom: 15px; }
+        .therapeute-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; transition: all 0.2s; }
+        .therapeute-card:hover { box-shadow: 0 5px 20px rgba(45,106,79,0.12); transform: translateY(-2px); }
+        .tc-avatar { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; color: white; flex-shrink: 0; }
+        .tc-info { flex: 1; }
+        .tc-name { font-size: 16px; font-weight: bold; color: #1B4332; }
+        .tc-specialite { font-size: 13px; color: #888; margin-top: 2px; }
+        .tc-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+        .tc-tag { background: #e8f5e9; color: #2D6A4F; padding: 2px 10px; border-radius: 10px; font-size: 11px; }
+        .tc-score { text-align: center; flex-shrink: 0; }
+        .score-circle { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: white; margin-bottom: 4px; }
+        .score-high { background: #2D6A4F; }
+        .score-mid { background: #52B788; }
+        .score-low { background: #95D5B2; color: #1B4332; }
+        .score-label { font-size: 11px; color: #888; }
+        .btn-voir { background: #f0faf5; color: #2D6A4F; border: 1px solid #b7e4c7; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .btn-recommencer { display: block; width: 100%; padding: 14px; background: white; color: #2D6A4F; border: 2px solid #2D6A4F; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; margin-top: 20px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">نفس</div>
+    <div>
+        <a onclick="retourDashboard()">← Dashboard</a>
+        <a href="/therapeutes">Thérapeutes</a>
+    </div>
+</nav>
+
+<div class="progress-bar-container hidden" id="progress-bar">
+    <div class="progress-info">
+        <span id="progress-label">Question 1 sur 12</span>
+        <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+</div>
+
+<div class="main">
+
+    <div class="intro" id="screen-intro">
+        <div class="icon">🧠</div>
+        <h1>Trouvons votre thérapeute idéal</h1>
+        <p>Répondez à quelques questions pour que nous puissions vous recommander le thérapeute le plus adapté à vos besoins.</p>
+        <p style="font-size:13px;color:#aaa;margin-top:10px;margin-bottom:30px;">⏱️ Environ 3-5 minutes · 12 questions</p>
+        <button class="btn-start" onclick="demarrer()">Commencer le questionnaire →</button>
+    </div>
+
+    <div class="hidden" id="screen-questions">
+        <div class="question-card" id="question-card"></div>
+    </div>
+
+    <div class="hidden" id="screen-loading">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p style="color:#555;font-size:16px;">Analyse de vos réponses en cours...</p>
+            <p style="font-size:13px;color:#aaa;margin-top:8px;">Nous cherchons votre meilleur match 💚</p>
+        </div>
+    </div>
+
+    <div class="hidden results" id="screen-results">
+        <div class="results-header">
+            <div style="font-size:50px;margin-bottom:15px;">🎉</div>
+            <h2>Vos thérapeutes recommandés</h2>
+            <p style="color:#666;font-size:15px;">Basé sur vos réponses, voici les professionnels les plus compatibles</p>
+        </div>
+        <div class="best-match" id="best-match-card"></div>
+        <div class="autres-title">Autres thérapeutes compatibles</div>
+        <div id="autres-liste"></div>
+        <button class="btn-recommencer" onclick="recommencer()">🔄 Refaire le questionnaire</button>
+    </div>
+
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user) window.location.href = '/login';
+
+    function retourDashboard() {
+        if (!user) { window.location.href = '/login'; return; }
+        if (user.role === 'admin') window.location.href = '/dashboard-admin';
+        else if (user.role === 'therapeute') window.location.href = '/dashboard-therapeute';
+        else window.location.href = '/dashboard-patient';
+    }
+
+    const questions = [
+        { id: 'probleme', text: 'Quelle est votre principale préoccupation ?', desc: 'Choisissez ce qui vous touche le plus en ce moment', type: 'grid',
+          options: [
+            { icon: '😰', label: 'Anxiété & Stress', val: 'anxiete' },
+            { icon: '😔', label: 'Dépression & Tristesse', val: 'depression' },
+            { icon: '💑', label: 'Couple & Relations', val: 'couple' },
+            { icon: '😨', label: 'Traumatismes & PTSD', val: 'trauma' },
+            { icon: '👨‍👩‍👧', label: 'Famille & Parentalité', val: 'famille' },
+            { icon: '🧒', label: 'Enfance & Adolescence', val: 'enfance' },
+            { icon: '💼', label: 'Travail & Burnout', val: 'travail' },
+            { icon: '🌀', label: 'Autre / Je ne sais pas', val: 'autre' },
+          ]
+        },
+        { id: 'duree', text: 'Depuis combien de temps ressentez-vous cela ?', desc: 'La durée nous aide à mieux comprendre votre situation', type: 'list',
+          options: [
+            { icon: '📅', label: 'Quelques jours ou semaines', val: 'recent' },
+            { icon: '🗓️', label: 'Quelques mois', val: 'mois' },
+            { icon: '📆', label: 'Plus d\'un an', val: 'an' },
+            { icon: '♾️', label: 'Depuis très longtemps', val: 'longtemps' },
+          ]
+        },
+        { id: 'therapie_avant', text: 'Avez-vous déjà suivi une thérapie ?', desc: 'Cela nous aide à adapter l\'approche', type: 'list',
+          options: [
+            { icon: '🆕', label: 'Non, c\'est la première fois', val: 'jamais' },
+            { icon: '⏸️', label: 'Oui, mais il y a longtemps', val: 'avant' },
+            { icon: '✅', label: 'Oui, récemment', val: 'recent' },
+            { icon: '🔄', label: 'Je suis en thérapie actuellement', val: 'actuel' },
+          ]
+        },
+        { id: 'genre_therapeute', text: 'Avez-vous une préférence pour le genre du thérapeute ?', desc: 'Votre confort est notre priorité', type: 'list',
+          options: [
+            { icon: '👩', label: 'Je préfère une femme', val: 'femme' },
+            { icon: '👨', label: 'Je préfère un homme', val: 'homme' },
+            { icon: '🤝', label: 'Pas de préférence', val: 'indifferent' },
+          ]
+        },
+        { id: 'langue', text: 'Dans quelle langue préférez-vous les séances ?', desc: 'Communiquer dans sa langue maternelle facilite le travail thérapeutique', type: 'grid',
+          options: [
+            { icon: '🇲🇦', label: 'Darija', val: 'darija' },
+            { icon: '🇫🇷', label: 'Français', val: 'francais' },
+            { icon: '🇸🇦', label: 'Arabe classique', val: 'arabe' },
+            { icon: '🇬🇧', label: 'Anglais', val: 'anglais' },
+          ]
+        },
+        { id: 'approche', text: 'Quel type d\'approche vous attire ?', desc: 'Si vous ne connaissez pas, ne vous inquiétez pas', type: 'list',
+          options: [
+            { icon: '🧠', label: 'TCC — Thérapie cognitivo-comportementale', val: 'tcc' },
+            { icon: '💬', label: 'Thérapie par la parole / écoute', val: 'parole' },
+            { icon: '🌱', label: 'Approche humaniste et bienveillante', val: 'humaniste' },
+            { icon: '🎯', label: 'Orientée solutions et objectifs concrets', val: 'solutions' },
+            { icon: '❓', label: 'Je ne sais pas, à vous de choisir', val: 'inconnu' },
+          ]
+        },
+        { id: 'seance_type', text: 'Comment souhaitez-vous faire vos séances ?', desc: '', type: 'grid',
+          options: [
+            { icon: '💻', label: 'En ligne uniquement', val: 'enligne' },
+            { icon: '🏥', label: 'En cabinet uniquement', val: 'cabinet' },
+            { icon: '🔀', label: 'Les deux', val: 'mixte' },
+            { icon: '📱', label: 'Chat / messagerie', val: 'chat' },
+          ]
+        },
+        { id: 'frequence', text: 'À quelle fréquence souhaitez-vous consulter ?', desc: '', type: 'list',
+          options: [
+            { icon: '📅', label: 'Une fois par semaine', val: 'semaine' },
+            { icon: '🗓️', label: 'Toutes les deux semaines', val: 'quinzaine' },
+            { icon: '📆', label: 'Une fois par mois', val: 'mois' },
+            { icon: '🆘', label: 'En cas de besoin urgent', val: 'urgence' },
+          ]
+        },
+        { id: 'budget', text: 'Quel est votre budget par séance ?', desc: '', type: 'list',
+          options: [
+            { icon: '💚', label: 'Moins de 200 MAD', val: 'bas' },
+            { icon: '💛', label: '200 - 350 MAD', val: 'moyen' },
+            { icon: '🧡', label: '350 - 500 MAD', val: 'haut' },
+            { icon: '❤️', label: 'Plus de 500 MAD', val: 'premium' },
+          ]
+        },
+        { id: 'disponibilite', text: 'Quand êtes-vous disponible ?', desc: '', type: 'grid',
+          options: [
+            { icon: '🌅', label: 'Matin', val: 'matin' },
+            { icon: '☀️', label: 'Après-midi', val: 'aprem' },
+            { icon: '🌆', label: 'Soir', val: 'soir' },
+            { icon: '📅', label: 'Week-end', val: 'weekend' },
+          ]
+        },
+        { id: 'confort', text: 'Qu\'est-ce qui est le plus important pour vous chez un thérapeute ?', desc: '', type: 'list',
+          options: [
+            { icon: '🤗', label: 'Chaleur humaine et empathie', val: 'empathie' },
+            { icon: '📚', label: 'Expertise et formation', val: 'expertise' },
+            { icon: '🕌', label: 'Compréhension de la culture marocaine', val: 'culture' },
+            { icon: '🔒', label: 'Confidentialité absolue', val: 'confidentialite' },
+          ]
+        },
+        { id: 'objectif', text: 'Quel est votre objectif principal en commençant une thérapie ?', desc: 'Soyez honnête avec vous-même', type: 'list',
+          options: [
+            { icon: '😌', label: 'Me sentir mieux au quotidien', val: 'bien_etre' },
+            { icon: '🔍', label: 'Comprendre mes émotions et comportements', val: 'comprendre' },
+            { icon: '💪', label: 'Surmonter une situation difficile', val: 'surmonter' },
+            { icon: '🌱', label: 'Grandir et évoluer personnellement', val: 'evoluer' },
+          ]
+        },
+    ];
+
+    const therapeutes = [
+        { nom: 'Dr. Amina Benali', initiale: 'A', couleur: '#2D6A4F', specialites: ['anxiete','depression','stress'], genre: 'femme', langues: ['francais','darija'], approches: ['tcc','humaniste'], tarif: 'moyen', disponibilites: ['matin','aprem'], experience: '8 ans', note: 4.9, tags: ['Anxiété','TCC','Bienveillante'], description: 'Spécialiste en anxiété et dépression avec une approche douce et bienveillante.' },
+        { nom: 'Dr. Karim Fassi', initiale: 'K', couleur: '#4A90D9', specialites: ['couple','famille','travail'], genre: 'homme', langues: ['francais','arabe'], approches: ['solutions','parole'], tarif: 'haut', disponibilites: ['soir','weekend'], experience: '12 ans', note: 4.6, tags: ['Couple','Famille','Solutions'], description: 'Expert en thérapie de couple et médiation familiale.' },
+        { nom: 'Dr. Sara Idrissi', initiale: 'S', couleur: '#E76F51', specialites: ['trauma','anxiete','enfance'], genre: 'femme', langues: ['francais','anglais','darija'], approches: ['tcc','humaniste'], tarif: 'moyen', disponibilites: ['matin','soir'], experience: '6 ans', note: 4.8, tags: ['Trauma','PTSD','Enfance'], description: 'Spécialiste des traumatismes et de l\'enfance difficile.' },
+        { nom: 'Dr. Youssef Alami', initiale: 'Y', couleur: '#9B59B6', specialites: ['enfance','famille','depression'], genre: 'homme', langues: ['darija','francais','arabe'], approches: ['humaniste','parole'], tarif: 'bas', disponibilites: ['aprem','weekend'], experience: '5 ans', note: 4.5, tags: ['Enfants','Adolescents','Accessible'], description: 'Dédié aux enfants, adolescents et à leurs familles.' },
+        { nom: 'Dr. Nadia Chraibi', initiale: 'N', couleur: '#E91E8C', specialites: ['depression','travail','anxiete'], genre: 'femme', langues: ['francais','anglais'], approches: ['tcc','solutions'], tarif: 'premium', disponibilites: ['matin','aprem'], experience: '15 ans', note: 4.9, tags: ['Burnout','Dépression','Senior'], description: 'Psychologue senior spécialisée en burnout et dépression professionnelle.' },
+        { nom: 'Dr. Omar Tazi', initiale: 'O', couleur: '#27AE60', specialites: ['anxiete','trauma','couple'], genre: 'homme', langues: ['arabe','darija','francais'], approches: ['parole','humaniste'], tarif: 'moyen', disponibilites: ['soir','matin'], experience: '9 ans', note: 4.7, tags: ['Anxiété','Culture','Empathie'], description: 'Profondément ancré dans la culture marocaine, approche humaine et chaleureuse.' },
+    ];
+
+    let questionActuelle = 0;
+    let reponses = {};
+
+    function demarrer() {
+        document.getElementById('screen-intro').classList.add('hidden');
+        document.getElementById('screen-questions').classList.remove('hidden');
+        document.getElementById('progress-bar').classList.remove('hidden');
+        afficherQuestion(0);
+    }
+
+    function afficherQuestion(index) {
+        const q = questions[index];
+        updateProgress(index);
+        const card = document.getElementById('question-card');
+        card.innerHTML = `
+            <div class="question-num">Question ${index + 1} sur ${questions.length}</div>
+            <div class="question-text">${q.text}</div>
+            ${q.desc ? `<div class="question-desc">${q.desc}</div>` : ''}
+            <div class="${q.type === 'grid' ? 'options-grid' : 'options'}" id="options-container">
+                ${q.type === 'grid'
+                    ? q.options.map(o => `<div class="option-grid ${reponses[q.id] === o.val ? 'selected' : ''}" onclick="selectionner('${q.id}','${o.val}',this,true)"><div class="og-icon">${o.icon}</div><div class="og-label">${o.label}</div></div>`).join('')
+                    : q.options.map(o => `<div class="option ${reponses[q.id] === o.val ? 'selected' : ''}" onclick="selectionner('${q.id}','${o.val}',this,false)"><span class="opt-icon">${o.icon}</span><span>${o.label}</span><span class="opt-check">${reponses[q.id] === o.val ? '✓' : ''}</span></div>`).join('')
+                }
+            </div>
+            <div class="nav-btns">
+                ${index > 0 ? `<button class="btn-prev" onclick="precedent()">← Précédent</button>` : '<div></div>'}
+                <button class="btn-next" id="btn-next" onclick="suivant()" ${reponses[q.id] ? '' : 'disabled'}>
+                    ${index === questions.length - 1 ? 'Voir mes résultats →' : 'Suivant →'}
+                </button>
+            </div>
+        `;
+    }
+
+    function selectionner(qId, val, el, isGrid) {
+        reponses[qId] = val;
+        const container = document.getElementById('options-container');
+        container.querySelectorAll(isGrid ? '.option-grid' : '.option').forEach(o => {
+            o.classList.remove('selected');
+            if (!isGrid) { const c = o.querySelector('.opt-check'); if (c) c.textContent = ''; }
+        });
+        el.classList.add('selected');
+        if (!isGrid) { const c = el.querySelector('.opt-check'); if (c) c.textContent = '✓'; }
+        document.getElementById('btn-next').disabled = false;
+    }
+
+    function suivant() {
+        if (questionActuelle < questions.length - 1) { questionActuelle++; afficherQuestion(questionActuelle); }
+        else calculerResultats();
+    }
+
+    function precedent() {
+        if (questionActuelle > 0) { questionActuelle--; afficherQuestion(questionActuelle); }
+    }
+
+    function updateProgress(index) {
+        const pct = Math.round((index / questions.length) * 100);
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('progress-label').textContent = `Question ${index + 1} sur ${questions.length}`;
+        document.getElementById('progress-pct').textContent = pct + '%';
+    }
+
+    function calculerScore(t) {
+        let score = 0, max = 13;
+        if (t.specialites.includes(reponses.probleme)) score += 3; else if (reponses.probleme === 'autre') score += 1;
+        if (reponses.genre_therapeute === 'indifferent' || t.genre === reponses.genre_therapeute) score += 2;
+        if (t.langues.includes(reponses.langue)) score += 2;
+        if (reponses.approche === 'inconnu') score += 1; else if (t.approches.includes(reponses.approche)) score += 2;
+        const budgets = ['bas','moyen','haut','premium'];
+        const diff = Math.abs(budgets.indexOf(t.tarif) - budgets.indexOf(reponses.budget));
+        if (diff === 0) score += 2; else if (diff === 1) score += 1;
+        if (t.disponibilites.includes(reponses.disponibilite)) score += 1;
+        if (reponses.confort === 'culture' && t.langues.includes('darija')) score += 1;
+        else if (reponses.confort === 'expertise' && parseInt(t.experience) >= 8) score += 1;
+        else if (reponses.confort === 'empathie' && t.approches.includes('humaniste')) score += 1;
+        return Math.round((score / max) * 100);
+    }
+
+    function calculerResultats() {
+        document.getElementById('screen-questions').classList.add('hidden');
+        document.getElementById('progress-bar').classList.add('hidden');
+        document.getElementById('screen-loading').classList.remove('hidden');
+        setTimeout(() => {
+            const scores = therapeutes.map(t => ({ ...t, score: calculerScore(t) })).sort((a, b) => b.score - a.score);
+            document.getElementById('screen-loading').classList.add('hidden');
+            document.getElementById('screen-results').classList.remove('hidden');
+            afficherResultats(scores);
+        }, 2500);
+    }
+
+    function afficherResultats(scores) {
+        const best = scores[0];
+        document.getElementById('best-match-card').innerHTML = `
+            <div class="bm-avatar">${best.initiale}</div>
+            <h3>${best.nom}</h3>
+            <div class="bm-specialite">${best.description}</div>
+            <div class="compatibility-bar"><div class="compatibility-fill" style="width:${best.score}%"></div></div>
+            <div class="compatibility-label">Compatibilité : ${best.score}% · ⭐ ${best.note} · ${best.experience} d'expérience</div>
+            <div class="bm-tags">${best.tags.map(t => `<span class="bm-tag">${t}</span>`).join('')}</div>
+            <button class="btn-reserver" onclick="window.location.href='/reservation'">📅 Réserver une séance</button>
+        `;
+        document.getElementById('autres-liste').innerHTML = scores.slice(1).map(t => {
+            const sc = t.score >= 70 ? 'score-high' : t.score >= 50 ? 'score-mid' : 'score-low';
+            return `<div class="therapeute-card">
+                <div class="tc-avatar" style="background:${t.couleur}">${t.initiale}</div>
+                <div class="tc-info">
+                    <div class="tc-name">${t.nom}</div>
+                    <div class="tc-specialite">${t.description}</div>
+                    <div class="tc-tags">${t.tags.map(tag => `<span class="tc-tag">${tag}</span>`).join('')}</div>
+                    <button class="btn-voir" onclick="window.location.href='/reservation'">Voir le profil →</button>
+                </div>
+                <div class="tc-score">
+                    <div class="score-circle ${sc}">${t.score}%</div>
+                    <div class="score-label">compatible</div>
+                    <div style="font-size:12px;color:#f4c430;margin-top:4px;">★ ${t.note}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function recommencer() {
+        questionActuelle = 0; reponses = {};
+        document.getElementById('screen-results').classList.add('hidden');
+        document.getElementById('screen-intro').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>

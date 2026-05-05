@@ -48,7 +48,7 @@
     <div class="card">
         <h2>Votre questionnaire</h2>
         <p class="subtitle">4 questions pour trouver le thérapeute qui vous correspond le mieux</p>
-        
+
         <div class="step-bar">
             <div class="step active" id="s1"></div>
             <div class="step" id="s2"></div>
@@ -111,8 +111,8 @@
         <div class="result" id="result">
             <div class="avatar" id="result-avatar">?</div>
             <h3 id="result-nom">Votre thérapeute</h3>
-            <p>Nous avons trouvé le thérapeute qui correspond à votre profil 🎉</p>
-            <button class="btn-chat" onclick="allerAuChat()">💬 Commencer à chatter</button>
+            <p id="result-msg">Nous avons trouvé le thérapeute qui correspond à votre profil 🎉</p>
+            <button class="btn-chat" id="btn-action" onclick="allerAuChat()">💬 Commencer à chatter</button>
         </div>
 
         <div class="nav-btns" id="nav-btns">
@@ -129,7 +129,6 @@
     let etape = 1;
     const total = 4;
     const reponses = {};
-    let therapeuteData = null;
 
     function select(el, key, val) {
         el.closest('.options').querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
@@ -178,33 +177,38 @@
                 body: JSON.stringify({ patient_id: user.id, ...reponses })
             });
             const data = await res.json();
-            therapeuteData = data;
 
-            // Sauvegarder le matching dans localStorage
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+
             if (data.therapeute_id) {
+                // ✅ Match trouvé → sauvegarder et aller au chat
                 localStorage.setItem('matching', JSON.stringify({
                     therapeute_id: data.therapeute_id,
                     therapeute_nom: data.therapeute_nom,
                     therapeute_prenom: data.therapeute_prenom,
                     room_id: `patient${user.id}_therapeute${data.therapeute_id}`
                 }));
+                const nom = (data.therapeute_prenom || '') + ' ' + (data.therapeute_nom || '');
+                document.getElementById('result-avatar').textContent = (data.therapeute_prenom || 'T')[0].toUpperCase();
+                document.getElementById('result-nom').textContent = 'Dr. ' + nom.trim();
+                document.getElementById('result-msg').textContent = 'Nous avons trouvé le thérapeute qui correspond à votre profil 🎉';
+                document.getElementById('btn-action').textContent = '💬 Commencer à chatter';
+                document.getElementById('btn-action').onclick = () => window.location.href = '/chat';
+            } else {
+                // ❌ Pas de match → rediriger vers liste des thérapeutes
+                document.getElementById('result-avatar').textContent = '👨‍⚕️';
+                document.getElementById('result-avatar').style.fontSize = '36px';
+                document.getElementById('result-nom').textContent = 'Pas de match automatique';
+                document.getElementById('result-msg').textContent = 'Pas de souci ! Choisissez directement votre thérapeute dans notre liste.';
+                document.getElementById('btn-action').textContent = '👨‍⚕️ Voir les thérapeutes';
+                document.getElementById('btn-action').onclick = () => window.location.href = '/therapeutes';
             }
 
+        } catch(e) {
+            // Erreur réseau → aussi rediriger vers liste
             document.getElementById('loading').style.display = 'none';
             document.getElementById('result').style.display = 'block';
-            
-            const nom = (data.therapeute_prenom || '') + ' ' + (data.therapeute_nom || '');
-            document.getElementById('result-nom').textContent = 'Dr. ' + nom.trim();
-            document.getElementById('result-avatar').textContent = 
-                (data.therapeute_prenom || 'T')[0].toUpperCase();
-        } catch(e) {
-            alert('Erreur lors du matching. Veuillez réessayer.');
-        }
-    }
-
-    function allerAuChat() {
-        window.location.href = '/chat';
-    }
-</script>
-</body>
-</html>
+            document.getElementById('result-avatar').textContent = '👨‍⚕️';
+            document.getElementById('result-avatar').style.fontSize = '36px';
+            document.getElementById('result-nom').textContent = 'C

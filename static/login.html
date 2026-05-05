@@ -50,8 +50,8 @@
     <div class="subtitle">Votre santé mentale nous tient à cœur</div>
 
     <div class="tabs">
-        <button class="tab active" onclick="showTab('connexion', this)">Connexion</button>
-        <button class="tab" onclick="showTab('inscription', this)">Inscription</button>
+        <button class="tab active" onclick="afficherOnglet('connexion', this)">Connexion</button>
+        <button class="tab" onclick="afficherOnglet('inscription', this)">Inscription</button>
     </div>
 
     <!-- FORMULAIRE CONNEXION -->
@@ -71,8 +71,8 @@
     <!-- FORMULAIRE INSCRIPTION -->
     <div class="form" id="inscription">
         <div class="role-select">
-            <div class="role-btn active" id="role-patient" onclick="setRole('patient')">🧑 Patient</div>
-            <div class="role-btn" id="role-therapeute" onclick="setRole('therapeute')">👨‍⚕️ Thérapeute</div>
+            <div class="role-btn active" id="role-patient" onclick="changerRole('patient')">🧑 Patient</div>
+            <div class="role-btn" id="role-therapeute" onclick="changerRole('therapeute')">👨‍⚕️ Thérapeute</div>
         </div>
         <div class="field">
             <label>Nom</label>
@@ -102,14 +102,14 @@
 <script>
     let roleActuel = "patient";
 
-    function showTab(tab, btn) {
+    function afficherOnglet(tab, btn) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
         document.getElementById(tab).classList.add('active');
         btn.classList.add('active');
     }
 
-    function setRole(role) {
+    function changerRole(role) {
         roleActuel = role;
         document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('role-' + role).classList.add('active');
@@ -121,7 +121,6 @@
         } else if (role === 'therapeute') {
             window.location.href = '/dashboard-therapeute';
         } else {
-            // Patient → toujours questionnaire d'abord
             window.location.href = '/questionnaire';
         }
     }
@@ -130,3 +129,96 @@
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         const msg = document.getElementById('login-message');
+
+        if (!email || !password) {
+            msg.className = 'message error';
+            msg.textContent = 'Remplis tous les champs';
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/connexion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, mot_de_passe: password })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                msg.className = 'message success';
+                msg.textContent = 'Marhaba ' + data.prenom + ' !';
+                localStorage.setItem('user', JSON.stringify({
+                    id: data.id,
+                    nom: data.nom,
+                    prenom: data.prenom,
+                    role: data.role
+                }));
+                setTimeout(() => {
+                    if (data.role === 'admin') {
+                        window.location.href = '/dashboard-admin';
+                    } else if (data.role === 'therapeute') {
+                        window.location.href = '/dashboard-therapeute';
+                    } else {
+                        const matching = localStorage.getItem('matching');
+                        window.location.href = matching ? '/dashboard-patient' : '/therapeutes';
+                    }
+                }, 1500);
+            } else {
+                msg.className = 'message error';
+                msg.textContent = data.detail;
+            }
+        } catch(e) {
+            msg.className = 'message error';
+            msg.textContent = 'Erreur de connexion';
+        }
+    }
+
+    async function inscrire() {
+        const nom = document.getElementById('reg-nom').value;
+        const prenom = document.getElementById('reg-prenom').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const msg = document.getElementById('reg-message');
+
+        if (!nom || !prenom || !email || !password) {
+            msg.className = 'message error';
+            msg.textContent = 'Remplis tous les champs';
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/inscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nom,
+                    prenom,
+                    email,
+                    mot_de_passe: password,
+                    role: roleActuel
+                })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('user', JSON.stringify({
+                    id: data.id,
+                    nom: data.nom,
+                    prenom: data.prenom,
+                    role: data.role
+                }));
+                msg.className = 'message success';
+                msg.textContent = 'Compte créé ! Redirection...';
+                setTimeout(() => redirigerSelonRole(data.role), 1000);
+            } else {
+                msg.className = 'message error';
+                msg.textContent = data.detail;
+            }
+        } catch(e) {
+            msg.className = 'message error';
+            msg.textContent = 'Erreur de connexion';
+        }
+    }
+</script>
+</body>
+</html>

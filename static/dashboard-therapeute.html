@@ -7,143 +7,52 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f4; min-height: 100vh; }
-
-        .navbar {
-            background: #1B4332;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .navbar { background: #1B4332; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         .navbar .logo { font-size: 24px; font-weight: bold; }
         .navbar .user-info { display: flex; align-items: center; gap: 15px; font-size: 14px; }
         .navbar .badge { background: #40916C; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
         .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
-
         .layout { display: flex; min-height: calc(100vh - 60px); }
-
-        .sidebar {
-            width: 240px;
-            background: white;
-            padding: 25px 15px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-        }
-        .sidebar .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 5px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-        .sidebar .menu-item:hover, .sidebar .menu-item.active {
-            background: #f0faf5;
-            color: #1B4332;
-            font-weight: 600;
-        }
+        .sidebar { width: 240px; background: white; padding: 25px 15px; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .sidebar .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 10px; cursor: pointer; font-size: 14px; color: #555; margin-bottom: 5px; transition: all 0.2s; text-decoration: none; }
+        .sidebar .menu-item:hover, .sidebar .menu-item.active { background: #f0faf5; color: #1B4332; font-weight: 600; }
         .sidebar .menu-item .icon { font-size: 18px; width: 24px; text-align: center; }
-
         .main { flex: 1; padding: 30px; }
         .page-title { font-size: 22px; font-weight: bold; color: #1B4332; margin-bottom: 5px; }
         .page-subtitle { color: #888; font-size: 14px; margin-bottom: 25px; }
-
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            text-align: center;
-        }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
         .stat-icon { font-size: 28px; margin-bottom: 8px; }
         .stat-value { font-size: 28px; font-weight: bold; color: #1B4332; }
         .stat-label { font-size: 12px; color: #888; margin-top: 3px; }
-
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
-
         .section { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
         .section-title { font-size: 16px; font-weight: bold; color: #1B4332; margin-bottom: 20px; }
-
-        /* PLANNING */
-        .seance-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
+        .patient-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: all 0.2s; }
+        .patient-item:last-child { border-bottom: none; }
+        .patient-item:hover { background: #f9fffe; border-radius: 8px; padding-left: 8px; }
+        .patient-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #52B788, #95D5B2); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; flex-shrink: 0; }
+        .patient-name { font-weight: 600; font-size: 14px; color: #333; }
+        .patient-info { font-size: 12px; color: #888; margin-top: 2px; }
+        .seance-item { display: flex; align-items: center; gap: 15px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
         .seance-item:last-child { border-bottom: none; }
-        .seance-time { font-size: 13px; color: #888; width: 60px; flex-shrink: 0; font-weight: 600; }
+        .seance-time { font-size: 13px; color: #888; width: 80px; flex-shrink: 0; font-weight: 600; }
         .seance-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #2D6A4F, #52B788); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; flex-shrink: 0; }
         .seance-patient .pname { font-weight: 600; font-size: 14px; color: #333; }
         .seance-patient .ptype { font-size: 12px; color: #888; }
-        .seance-actions { margin-left: auto; display: flex; gap: 8px; }
+        .seance-actions { margin-left: auto; }
         .btn-sm { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
-        .btn-green { background: #d4edda; color: #155724; }
         .btn-blue { background: #cce5ff; color: #004085; }
-
-        /* PATIENTS LISTE */
-        .patient-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-        }
-        .patient-item:last-child { border-bottom: none; }
-        .patient-item:hover { background: #f9fffe; border-radius: 8px; padding-left: 8px; }
-        .patient-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #52B788, #95D5B2); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; }
-        .patient-name { font-weight: 600; font-size: 14px; color: #333; }
-        .patient-info { font-size: 12px; color: #888; margin-top: 2px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
-        .dot-green { background: #52B788; }
-        .dot-orange { background: #f4a261; }
-
-        /* DISPONIBILITÉS */
-        .dispo-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        .dispo-day { text-align: center; }
-        .day-label { font-size: 11px; color: #888; margin-bottom: 6px; font-weight: 600; }
-        .time-slot {
-            padding: 5px 3px;
-            border-radius: 5px;
-            font-size: 10px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 3px;
-            border: 1px solid #e0e0e0;
-            background: white;
-            transition: all 0.2s;
-        }
-        .time-slot.busy { background: #ffe5e5; border-color: #ffb3b3; color: #c0392b; }
-        .time-slot.free { background: #e5ffe5; border-color: #a8d5b5; color: #1B4332; }
-        .time-slot:hover { transform: scale(1.05); }
-
-        /* REVENUS */
-        .revenu-card {
-            background: linear-gradient(135deg, #1B4332, #2D6A4F);
-            border-radius: 12px;
-            padding: 20px;
-            color: white;
-            text-align: center;
-        }
+        .btn-green { background: #d4edda; color: #155724; }
+        .revenu-card { background: linear-gradient(135deg, #1B4332, #2D6A4F); border-radius: 12px; padding: 20px; color: white; text-align: center; }
         .revenu-montant { font-size: 36px; font-weight: bold; margin: 10px 0 5px; }
         .revenu-label { font-size: 13px; opacity: 0.8; }
-        .revenu-detail { font-size: 12px; opacity: 0.7; margin-top: 8px; }
-
-        .btn-primary { background: #1B4332; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
-        .btn-primary:hover { background: #2D6A4F; }
+        .empty-state { text-align: center; padding: 20px; color: #aaa; font-size: 14px; }
+        .btn-profil { background: #1B4332; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
 <div class="navbar">
     <div class="logo">نفس · Nafs</div>
     <div class="user-info">
@@ -154,16 +63,9 @@
 </div>
 
 <div class="layout">
-    <!-- SIDEBAR -->
     <div class="sidebar">
         <a href="/dashboard-therapeute" class="menu-item active">
             <span class="icon">🏠</span> Tableau de bord
-        </a>
-        <a href="#" class="menu-item">
-            <span class="icon">👥</span> Mes patients
-        </a>
-        <a href="/reservation" class="menu-item">
-            <span class="icon">📅</span> Planning
         </a>
         <a href="/chat" class="menu-item">
             <span class="icon">💬</span> Messages
@@ -171,135 +73,67 @@
         <a href="/video" class="menu-item">
             <span class="icon">📹</span> Appel vidéo
         </a>
-        <a href="/profil" class="menu-item">
+        <a href="/profil-therapeute" class="menu-item">
             <span class="icon">👤</span> Mon profil
         </a>
     </div>
 
-    <!-- MAIN -->
     <div class="main">
         <div class="page-title" id="welcome-msg">Bonjour Dr. 👋</div>
-        <div class="page-subtitle">Voici votre tableau de bord du jour</div>
+        <div class="page-subtitle">Voici votre tableau de bord</div>
+
+        <!-- BANNIÈRE PROFIL INCOMPLET -->
+        <div id="banner-profil"></div>
 
         <!-- STATS -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
-                <div class="stat-value">12</div>
+                <div class="stat-value" id="nb-patients">0</div>
                 <div class="stat-label">Patients actifs</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📅</div>
-                <div class="stat-value">3</div>
-                <div class="stat-label">Séances aujourd'hui</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💬</div>
-                <div class="stat-value">5</div>
-                <div class="stat-label">Messages en attente</div>
+                <div class="stat-value" id="nb-seances">0</div>
+                <div class="stat-label">Séances totales</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">⭐</div>
-                <div class="stat-value">4.8</div>
+                <div class="stat-value" id="note-moyenne">—</div>
                 <div class="stat-label">Note moyenne</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="revenus">0</div>
+                <div class="stat-label">MAD ce mois</div>
             </div>
         </div>
 
         <div class="grid-2">
-            <!-- PLANNING DU JOUR -->
+            <!-- SÉANCES -->
             <div class="section">
-                <div class="section-title">📅 Séances d'aujourd'hui</div>
-
-                <div class="seance-item">
-                    <div class="seance-time">09:00</div>
-                    <div class="seance-avatar">F</div>
-                    <div class="seance-patient">
-                        <div class="pname">Fatima Zahra M.</div>
-                        <div class="ptype">Séance vidéo · 50 min</div>
-                    </div>
-                    <div class="seance-actions">
-                        <button class="btn-sm btn-blue" onclick="window.location.href='/video'">📹 Rejoindre</button>
-                    </div>
-                </div>
-
-                <div class="seance-item">
-                    <div class="seance-time">11:00</div>
-                    <div class="seance-avatar">A</div>
-                    <div class="seance-patient">
-                        <div class="pname">Ahmed B.</div>
-                        <div class="ptype">Séance chat · 50 min</div>
-                    </div>
-                    <div class="seance-actions">
-                        <button class="btn-sm btn-green" onclick="window.location.href='/chat'">💬 Ouvrir</button>
-                    </div>
-                </div>
-
-                <div class="seance-item">
-                    <div class="seance-time">14:30</div>
-                    <div class="seance-avatar">N</div>
-                    <div class="seance-patient">
-                        <div class="pname">Nadia K.</div>
-                        <div class="ptype">Séance vidéo · 50 min</div>
-                    </div>
-                    <div class="seance-actions">
-                        <button class="btn-sm btn-blue" onclick="window.location.href='/video'">📹 Rejoindre</button>
-                    </div>
+                <div class="section-title">📅 Prochaines séances</div>
+                <div id="seances-section">
+                    <div class="empty-state">Aucune séance planifiée</div>
                 </div>
             </div>
 
             <!-- REVENUS -->
             <div class="section">
-                <div class="section-title">💰 Revenus ce mois</div>
+                <div class="section-title">💰 Revenus</div>
                 <div class="revenu-card">
-                    <div class="revenu-label">Total encaissé</div>
-                    <div class="revenu-montant">3 600 MAD</div>
-                    <div class="revenu-detail">12 séances × 300 MAD</div>
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: space-between; font-size: 14px; color: #555;">
-                    <span>En attente :</span>
-                    <span style="font-weight: 600; color: #1B4332;">900 MAD</span>
-                </div>
-                <div style="margin-top: 8px; display: flex; justify-content: space-between; font-size: 14px; color: #555;">
-                    <span>Séances ce mois :</span>
-                    <span style="font-weight: 600;">12 / 20 planifiées</span>
+                    <div class="revenu-label">Total ce mois</div>
+                    <div class="revenu-montant" id="revenu-montant">0 MAD</div>
+                    <div class="revenu-label" id="revenu-detail">0 séances</div>
                 </div>
             </div>
         </div>
 
         <!-- MES PATIENTS -->
         <div class="section">
-            <div class="section-title">👥 Mes patients récents</div>
-            <div class="patient-item">
-                <div class="patient-avatar">F</div>
-                <div>
-                    <div class="patient-name">Fatima Zahra M.</div>
-                    <div class="patient-info">Dernière séance : hier · Anxiété</div>
-                </div>
-                <div class="status-dot dot-green"></div>
-            </div>
-            <div class="patient-item">
-                <div class="patient-avatar">A</div>
-                <div>
-                    <div class="patient-name">Ahmed B.</div>
-                    <div class="patient-info">Dernière séance : il y a 3 jours · Dépression</div>
-                </div>
-                <div class="status-dot dot-green"></div>
-            </div>
-            <div class="patient-item">
-                <div class="patient-avatar">N</div>
-                <div>
-                    <div class="patient-name">Nadia K.</div>
-                    <div class="patient-info">Dernière séance : il y a 1 semaine · Stress</div>
-                </div>
-                <div class="status-dot dot-orange"></div>
-            </div>
-            <div class="patient-item">
-                <div class="patient-avatar">Y</div>
-                <div>
-                    <div class="patient-name">Youssef A.</div>
-                    <div class="patient-info">Dernière séance : il y a 2 semaines · Couple</div>
-                </div>
-                <div class="status-dot dot-orange"></div>
+            <div class="section-title">👥 Mes patients</div>
+            <div id="patients-section">
+                <div class="empty-state">Aucun patient pour le moment</div>
             </div>
         </div>
     </div>
@@ -307,20 +141,99 @@
 
 <script>
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (!user) {
-        window.location.href = '/login';
-    } else if (user.role !== 'therapeute') {
+    if (!user) window.location.href = '/login';
+    else if (user.role !== 'therapeute') {
         if (user.role === 'patient') window.location.href = '/dashboard-patient';
         if (user.role === 'admin') window.location.href = '/dashboard-admin';
-    } else {
-        document.getElementById('user-name').textContent = 'Dr. ' + user.prenom + ' ' + user.nom;
-        document.getElementById('welcome-msg').textContent = 'Bonjour, Dr. ' + user.prenom + ' 👋';
+    }
+
+    document.getElementById('user-name').textContent = 'Dr. ' + user.prenom + ' ' + user.nom;
+    document.getElementById('welcome-msg').textContent = 'Bonjour, Dr. ' + user.prenom + ' 👋';
+
+    // Bannière si profil pas complété
+    if (!user.profil_complete) {
+        document.getElementById('banner-profil').innerHTML = `
+            <div style="background:#fff3cd;padding:12px 20px;border-radius:10px;margin-bottom:20px;font-size:14px;">
+                ⚠️ Votre profil n'est pas encore complété — les patients ne peuvent pas vous voir →
+                <a href="/profil-therapeute" style="color:#1B4332;font-weight:bold">Compléter maintenant</a>
+            </div>
+        `;
     }
 
     function deconnecter() {
         localStorage.removeItem('user');
+        localStorage.removeItem('matching');
         window.location.href = '/login';
     }
+
+    // Charger les patients
+    async function chargerPatients() {
+        try {
+            const res = await fetch('/api/mes-patients/' + user.id);
+            const patients = await res.json();
+
+            document.getElementById('nb-patients').textContent = patients.length;
+
+            if (patients.length === 0) return;
+
+            document.getElementById('patients-section').innerHTML = patients.map(p => `
+                <div class="patient-item" onclick="window.location.href='/chat'">
+                    <div class="patient-avatar">${(p.prenom || 'P')[0].toUpperCase()}</div>
+                    <div>
+                        <div class="patient-name">${p.prenom} ${p.nom}</div>
+                        <div class="patient-info">${p.problematique || 'Patient'}</div>
+                    </div>
+                    <div style="margin-left:auto;">
+                        <button class="btn-sm btn-green" onclick="event.stopPropagation();window.location.href='/chat'">
+                            💬 Chatter
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) {
+            console.log('Erreur patients:', e);
+        }
+    }
+
+    // Charger les séances
+    async function chargerSeances() {
+        try {
+            const res = await fetch('/api/seances-therapeute/' + user.id);
+            const seances = await res.json();
+
+            document.getElementById('nb-seances').textContent = seances.length;
+
+            if (seances.length === 0) return;
+
+            document.getElementById('seances-section').innerHTML = seances.map(s => {
+                const date = new Date(s.date_heure);
+                const dateStr = date.toLocaleDateString('fr-FR', {
+                    day: 'numeric', month: 'short',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                return `
+                    <div class="seance-item">
+                        <div class="seance-time">${dateStr}</div>
+                        <div class="seance-avatar">${(s.patient_prenom || 'P')[0].toUpperCase()}</div>
+                        <div class="seance-patient">
+                            <div class="pname">${s.patient_prenom} ${s.patient_nom}</div>
+                            <div class="ptype">${s.type_seance === 'video' ? '📹 Vidéo' : '💬 Chat'} · 50 min</div>
+                        </div>
+                        <div class="seance-actions">
+                            <button class="btn-sm btn-blue" onclick="window.location.href='/video'">
+                                📹 Rejoindre
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch(e) {
+            console.log('Erreur séances:', e);
+        }
+    }
+
+    chargerPatients();
+    chargerSeances();
 </script>
 </body>
 </html>

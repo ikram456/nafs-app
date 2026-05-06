@@ -30,15 +30,11 @@
         .info-val { font-size: 14px; color: #333; font-weight: 600; }
         .dispo-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .dispo-tag { background: #e8f5e9; border-radius: 8px; padding: 6px 14px; font-size: 13px; color: #2D6A4F; }
-        .avis-item { padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
-        .avis-item:last-child { border-bottom: none; }
-        .avis-note { color: #f4a261; font-size: 14px; }
-        .avis-texte { color: #555; font-size: 14px; margin-top: 4px; }
-        .avis-date { color: #aaa; font-size: 12px; margin-top: 4px; }
         .btn-choisir { background: #2D6A4F; color: white; border: none; border-radius: 12px; padding: 16px 32px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
         .btn-choisir:hover { background: #1B4332; }
         .btn-choisir:disabled { background: #aaa; cursor: not-allowed; }
         .loading { text-align: center; padding: 60px; color: #888; }
+        .alert { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 12px 16px; font-size: 14px; color: #856404; margin-bottom: 16px; }
     </style>
 </head>
 <body>
@@ -54,10 +50,9 @@
 </div>
 
 <script>
+    // ✅ Vérification user au chargement
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (!user) window.location.href = '/login';
 
-    // Récupérer l'ID du thérapeute depuis l'URL
     const params = new URLSearchParams(window.location.search);
     const therapeuteId = params.get('id');
     if (!therapeuteId) window.location.href = '/therapeutes';
@@ -65,19 +60,32 @@
     const couleurs = ['#52B788', '#4A90D9', '#E76F51', '#9B5DE5', '#F15BB5'];
 
     function etoiles(note) {
-        return '★'.repeat(note) + '☆'.repeat(5 - note);
+        return '★'.repeat(note || 0) + '☆'.repeat(5 - (note || 0));
     }
 
     async function chargerProfil() {
         try {
             const res = await fetch('/api/therapeute/' + therapeuteId);
+            if (!res.ok) throw new Error('Thérapeute non trouvé');
             const t = await res.json();
+
             const couleur = couleurs[t.id % couleurs.length];
             const initiale = (t.prenom || 'T')[0].toUpperCase();
-
             const specialites = t.specialites ? t.specialites.split(',') : [];
             const langues = t.langues ? t.langues.split(',') : [];
             const dispos = t.disponibilites ? t.disponibilites.split(',') : [];
+
+            // Bouton selon si connecté ou non
+            const btnHTML = !user
+                ? `<div class="alert">⚠️ Connectez-vous pour choisir ce thérapeute</div>
+                   <button class="btn-choisir" onclick="window.location.href='/login'">
+                       🔐 Se connecter
+                   </button>`
+                : user.role !== 'patient'
+                ? `<div class="alert">⚠️ Seuls les patients peuvent choisir un thérapeute</div>`
+                : `<button class="btn-choisir" id="btn-choisir" onclick="choisirTherapeuteAction()">
+                       💬 Choisir ce thérapeute
+                   </button>`;
 
             document.getElementById('container').innerHTML = `
                 <div class="card">
@@ -87,7 +95,7 @@
                             <h2>Dr. ${t.prenom} ${t.nom}</h2>
                             <p>${t.diplome || 'Thérapeute certifié'}</p>
                             <div class="note">
-                                <span class="etoiles">${etoiles(t.note_moyenne || 0)}</span>
+                                <span class="etoiles">${etoiles(t.note_moyenne)}</span>
                                 <span class="note-val">${t.note_moyenne || 0}/5 (${t.nombre_avis || 0} avis)</span>
                             </div>
                         </div>
@@ -100,10 +108,7 @@
                         ${t.experience_ans ? `<span class="badge">⭐ ${t.experience_ans} ans d'expérience</span>` : ''}
                     </div>
 
-                    ${t.bio ? `
-                    <div class="section-title">À propos</div>
-                    <div class="bio">${t.bio}</div>
-                    ` : ''}
+                    ${t.bio ? `<div class="section-title">À propos</div><div class="bio">${t.bio}</div>` : ''}
 
                     <div class="info-grid">
                         <div class="info-item">
@@ -125,39 +130,52 @@
                     </div>
 
                     ${dispos.length > 0 ? `
-                    <div class="section-title">Disponibilités</div>
-                    <div class="dispo-list">
-                        ${dispos.map(d => `<span class="dispo-tag">📅 ${d.trim()}</span>`).join('')}
-                    </div>
+                        <div class="section-title">Disponibilités</div>
+                        <div class="dispo-list">
+                            ${dispos.map(d => `<span class="dispo-tag">📅 ${d.trim()}</span>`).join('')}
+                        </div>
                     ` : ''}
 
-                    <button class="btn-choisir" id="btn-choisir" onclick="choisirThérapeute()">
-                        💬 Choisir ce thérapeute
-                    </button>
+                    ${btnHTML}
                 </div>
             `;
         } catch(e) {
             document.getElementById('container').innerHTML =
-                '<p style="text-align:center;color:red">Erreur de chargement</p>';
+                '<p style="text-align:center;color:red;padding:40px">Erreur de chargement du profil</p>';
         }
     }
 
-    async function choisirThérapeute() {
+    async function choisirTherapeuteAction() {
+        // ✅ Vérification finale avant envoi
+        if (!user || user.role !== 'patient') {
+            window.location.href = '/login';
+            return;
+        }
+
         const btn = document.getElementById('btn-choisir');
-        btn.disabled = true;
-        btn.textContent = '⏳ Chargement...';
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '⏳ Chargement...';
+        }
 
         try {
             const res = await fetch('/api/choisir-therapeute', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    patient_id: user.id,
+                    patient_id: parseInt(user.id),
                     therapeute_id: parseInt(therapeuteId)
                 })
             });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Erreur serveur');
+            }
+
             const data = await res.json();
 
+            // ✅ Sauvegarder le matching
             localStorage.setItem('matching', JSON.stringify({
                 therapeute_id: data.therapeute_id,
                 therapeute_nom: data.therapeute_nom,
@@ -166,10 +184,13 @@
             }));
 
             window.location.href = '/chat';
+
         } catch(e) {
-            btn.disabled = false;
-            btn.textContent = '💬 Choisir ce thérapeute';
-            alert('Erreur. Réessayez.');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '💬 Choisir ce thérapeute';
+            }
+            alert('Erreur : ' + e.message);
         }
     }
 

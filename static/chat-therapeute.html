@@ -31,7 +31,7 @@
         .msg.moi { align-self: flex-end; align-items: flex-end; }
         .msg.autre { align-self: flex-start; align-items: flex-start; }
         .msg-nom { font-size: 11px; color: #aaa; margin-bottom: 3px; }
-        .msg-bulle { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+        .msg-bulle { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-word; max-width: 100%; }
         .moi .msg-bulle { background: #1B4332; color: white; border-bottom-right-radius: 4px; }
         .autre .msg-bulle { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
         .msg-heure { font-size: 10px; color: #bbb; margin-top: 3px; }
@@ -74,6 +74,8 @@
 const user = JSON.parse(localStorage.getItem('user') || 'null');
 if (!user || user.role !== 'therapeute') window.location.href = '/login';
 
+const therapeuteId = parseInt(user.id);
+
 const firebaseConfig = {
     apiKey: "AIzaSyBELf2X80gX5XPOgKJptrQBUkaPJhUDlII",
     authDomain: "nafs-46aca.firebaseapp.com",
@@ -86,12 +88,12 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
-let ecouteActuelle = null;
+let ecouteRef = null;
+let ecouteCallback = null;
 
 async function chargerPatients() {
     try {
-        const res = await fetch('/api/mes-patients/' + user.id);
+        const res = await fetch('/api/mes-patients/' + therapeuteId);
         const patients = await res.json();
         const liste = document.getElementById('patients-list');
 
@@ -116,13 +118,19 @@ async function chargerPatients() {
 }
 
 function ouvrirChat(patientId, nom, prenom) {
+    patientId = parseInt(patientId);
+
     document.querySelectorAll('.patient-row').forEach(r => r.classList.remove('actif'));
     const row = document.getElementById('pr-' + patientId);
     if (row) row.classList.add('actif');
 
-    if (ecouteActuelle) ecouteActuelle();
+    // Arrêter écoute précédente
+    if (ecouteRef && ecouteCallback) {
+        ecouteRef.off('value', ecouteCallback);
+    }
 
-    const roomId = `patient${patientId}_therapeute${user.id}`;
+    // ✅ Room ID identique à celle du patient
+    const roomId = 'patient' + patientId + '_therapeute' + therapeuteId;
     const messagesRef = db.ref('chats/' + roomId + '/messages');
 
     document.getElementById('chat-zone').innerHTML = `
@@ -141,22 +149,25 @@ function ouvrirChat(patientId, nom, prenom) {
         </div>
     `;
 
-    const ecoute = messagesRef.on('value', (snapshot) => {
+    ecouteRef = messagesRef;
+    ecouteCallback = messagesRef.on('value', (snapshot) => {
         document.getElementById('status').textContent = '🟢 Connecté';
         const container = document.getElementById('messages');
         container.innerHTML = '';
 
         if (snapshot.exists()) {
-            Object.values(snapshot.val()).forEach(msg => {
-                const estMoi = String(msg.auteur_id) === String(user.id);
+            const msgs = snapshot.val();
+            Object.keys(msgs).forEach(key => {
+                const msg = msgs[key];
+                const estMoi = String(msg.auteur_id) === String(therapeuteId);
                 const div = document.createElement('div');
                 div.className = 'msg ' + (estMoi ? 'moi' : 'autre');
                 const heure = msg.timestamp
                     ? new Date(msg.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
                     : '';
                 div.innerHTML = `
-                    ${!estMoi ? `<div class="msg-nom">${msg.auteur_prenom || ''}</div>` : ''}
-                    <div class="msg-bulle">${msg.texte}</div>
+                    ${!estMoi ? '<div class="msg-nom">' + (msg.auteur_prenom || '') + '</div>' : ''}
+                    <div class="msg-bulle">${msg.texte || ''}</div>
                     <div class="msg-heure">${heure}</div>
                 `;
                 container.appendChild(div);
@@ -165,16 +176,14 @@ function ouvrirChat(patientId, nom, prenom) {
         }
     });
 
-    ecouteActuelle = () => messagesRef.off('value', ecoute);
-
     function envoyer() {
         const input = document.getElementById('msg-input');
         const texte = input.value.trim();
         if (!texte) return;
         messagesRef.push({
             texte: texte,
-            auteur_id: user.id,
-            auteur_prenom: user.prenom,
+            auteur_id: therapeuteId,
+            auteur_prenom: user.prenom || 'Thérapeute',
             timestamp: Date.now()
         }).then(() => {
             input.value = '';
@@ -184,7 +193,7 @@ function ouvrirChat(patientId, nom, prenom) {
     }
 
     document.getElementById('btn-send').addEventListener('click', envoyer);
-    document.getElementById('msg-input').addEventListener('keypress', e => {
+    document.getElementById('msg-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') envoyer();
     });
 }

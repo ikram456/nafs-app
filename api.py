@@ -4,9 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi import HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from database import engine, Base, SessionLocal
 from models import user, therapeute
-from models.matching import Questionnaire, Matching
+from models.matching import Questionnaire, Matching, Seance, Avis
 from models.user import User
 from controllers.auth_controller import connecter_user, inscrire_user
 
@@ -25,6 +26,8 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 DAILY_API_KEY = "282286f7928b1501d7d6bf2a71ea38400a9e20b5671ac3938761de4a1fd38953"
+
+# ─── MODÈLES PYDANTIC ──────────────────────────────────────────────────────────
 
 class LoginData(BaseModel):
     email: str
@@ -47,6 +50,34 @@ class QuestionnaireData(BaseModel):
 class ChoixTherapeuteData(BaseModel):
     patient_id: int
     therapeute_id: int
+
+class ProfilTherapeuteData(BaseModel):
+    therapeute_id: int
+    bio: Optional[str] = None
+    specialites: Optional[str] = None
+    langues: Optional[str] = None
+    tarif: Optional[int] = None
+    experience_ans: Optional[int] = None
+    diplome: Optional[str] = None
+    genre: Optional[str] = None
+    disponibilites: Optional[str] = None
+
+class SeanceData(BaseModel):
+    patient_id: int
+    therapeute_id: int
+    date_heure: str
+    type_seance: str = "video"
+
+class AvisData(BaseModel):
+    patient_id: int
+    therapeute_id: int
+    seance_id: Optional[int] = None
+    note: int
+    commentaire: Optional[str] = None
+
+class NotesSeanceData(BaseModel):
+    seance_id: int
+    notes: str
 
 
 # ─── PAGES STATIQUES ───────────────────────────────────────────────────────────
@@ -99,6 +130,10 @@ def chat_therapeute():
 def profil():
     return FileResponse("static/profil.html")
 
+@app.get("/profil-therapeute")
+def profil_therapeute():
+    return FileResponse("static/profil-therapeute.html")
+
 @app.get("/video")
 def video():
     return FileResponse("static/video.html")
@@ -150,7 +185,8 @@ def connexion(data: LoginData):
         "id": result.id,
         "nom": result.nom,
         "prenom": result.prenom,
-        "role": result.role
+        "role": result.role,
+        "profil_complete": result.profil_complete if result.role == "therapeute" else True
     }
 
 @app.post("/auth/inscription")
@@ -165,7 +201,8 @@ def inscription(data: InscriptionData):
         "id": result.id,
         "nom": result.nom,
         "prenom": result.prenom,
-        "role": result.role
+        "role": result.role,
+        "profil_complete": False
     }
 
 
@@ -191,36 +228,14 @@ def soumettre_questionnaire(data: QuestionnaireData):
     )
     db.add(q)
     db.commit()
-
-    therapeutes_liste = db.query(User).filter(User.role == "therapeute").all()
-    therapeute_choisi = therapeutes_liste[0] if therapeutes_liste else None
-
-    if therapeute_choisi:
-        matching = Matching(
-            patient_id=data.patient_id,
-            therapeute_id=therapeute_choisi.id
-        )
-        db.add(matching)
-        db.commit()
-        db.close()
-        return {
-            "message": "Matching trouvé",
-            "therapeute_id": therapeute_choisi.id,
-            "therapeute_nom": therapeute_choisi.nom,
-            "therapeute_prenom": therapeute_choisi.prenom
-        }
-
     db.close()
-    return {"message": "Aucun thérapeute disponible", "therapeute_id": None}
+    return {"message": "Questionnaire soumis", "therapeute_id": None}
 
-
-# ─── NOUVEAU : Sauvegarder le choix d'un thérapeute depuis la liste ────────────
 
 @app.post("/api/choisir-therapeute")
 def choisir_therapeute(data: ChoixTherapeuteData):
     db = SessionLocal()
 
-    # Vérifier si matching existe déjà
     existant = db.query(Matching).filter(
         Matching.patient_id == data.patient_id,
         Matching.therapeute_id == data.therapeute_id
@@ -234,14 +249,14 @@ def choisir_therapeute(data: ChoixTherapeuteData):
         db.add(matching)
         db.commit()
 
-    therapeute = db.query(User).filter(User.id == data.therapeute_id).first()
+    t = db.query(User).filter(User.id == data.therapeute_id).first()
     db.close()
 
     return {
         "message": "Thérapeute choisi",
         "therapeute_id": data.therapeute_id,
-        "therapeute_nom": therapeute.nom if therapeute else "",
-        "therapeute_prenom": therapeute.prenom if therapeute else "",
+        "therapeute_nom": t.nom if t else "",
+        "therapeute_prenom": t.prenom if t else "",
         "room_id": f"patient{data.patient_id}_therapeute{data.therapeute_id}"
     }
 
@@ -267,16 +282,181 @@ def get_matching(patient_id: int):
     }
 
 
+# ─── THÉRAPEUTES ───────────────────────────────────────────────────────────────
+
 @app.get("/api/therapeutes")
 def get_therapeutes():
     db = SessionLocal()
-    therapeutes_liste = db.query(User).filter(User.role == "therapeute").all()
+    liste = db.query(User).filter(User.role == "therapeute").all()
     db.close()
     return [
-        {"id": t.id, "nom": t.nom, "prenom": t.prenom}
-        for t in therapeutes_liste
+        {
+            "id": t.id,
+            "nom": t.nom,
+            "prenom": t.prenom,
+            "bio": t.bio or "Thérapeute certifié",
+            "specialites": t.specialites or "",
+            "langues": t.langues or "",
+            "tarif": t.tarif or 0,
+            "experience_ans": t.experience_ans or 0,
+            "genre": t.genre or "",
+            "note_moyenne": t.note_moyenne or 0,
+            "nombre_avis": t.nombre_avis or 0,
+            "profil_complete": t.profil_complete or False
+        }
+        for t in liste
     ]
 
+@app.get("/api/therapeute/{therapeute_id}")
+def get_therapeute(therapeute_id: int):
+    db = SessionLocal()
+    t = db.query(User).filter(User.id == therapeute_id, User.role == "therapeute").first()
+    db.close()
+    if not t:
+        raise HTTPException(status_code=404, detail="Thérapeute non trouvé")
+    return {
+        "id": t.id,
+        "nom": t.nom,
+        "prenom": t.prenom,
+        "bio": t.bio or "",
+        "specialites": t.specialites or "",
+        "langues": t.langues or "",
+        "tarif": t.tarif or 0,
+        "experience_ans": t.experience_ans or 0,
+        "diplome": t.diplome or "",
+        "genre": t.genre or "",
+        "disponibilites": t.disponibilites or "",
+        "note_moyenne": t.note_moyenne or 0,
+        "nombre_avis": t.nombre_avis or 0
+    }
+
+@app.post("/api/profil-therapeute")
+def mettre_a_jour_profil(data: ProfilTherapeuteData):
+    db = SessionLocal()
+    t = db.query(User).filter(User.id == data.therapeute_id).first()
+    if not t:
+        db.close()
+        raise HTTPException(status_code=404, detail="Thérapeute non trouvé")
+
+    if data.bio is not None: t.bio = data.bio
+    if data.specialites is not None: t.specialites = data.specialites
+    if data.langues is not None: t.langues = data.langues
+    if data.tarif is not None: t.tarif = data.tarif
+    if data.experience_ans is not None: t.experience_ans = data.experience_ans
+    if data.diplome is not None: t.diplome = data.diplome
+    if data.genre is not None: t.genre = data.genre
+    if data.disponibilites is not None: t.disponibilites = data.disponibilites
+    t.profil_complete = True
+
+    db.commit()
+    db.close()
+    return {"message": "Profil mis à jour"}
+
+
+# ─── SÉANCES ───────────────────────────────────────────────────────────────────
+
+@app.post("/api/seance")
+def creer_seance(data: SeanceData):
+    import datetime
+    db = SessionLocal()
+    seance = Seance(
+        patient_id=data.patient_id,
+        therapeute_id=data.therapeute_id,
+        date_heure=datetime.datetime.fromisoformat(data.date_heure),
+        type_seance=data.type_seance,
+        statut="confirmee"
+    )
+    db.add(seance)
+    db.commit()
+    db.refresh(seance)
+    db.close()
+    return {"message": "Séance créée", "seance_id": seance.id}
+
+@app.get("/api/seances-patient/{patient_id}")
+def get_seances_patient(patient_id: int):
+    db = SessionLocal()
+    seances = db.query(Seance).filter(
+        Seance.patient_id == patient_id
+    ).order_by(Seance.date_heure).all()
+
+    result = []
+    for s in seances:
+        t = db.query(User).filter(User.id == s.therapeute_id).first()
+        result.append({
+            "id": s.id,
+            "date_heure": s.date_heure.isoformat() if s.date_heure else "",
+            "type_seance": s.type_seance,
+            "statut": s.statut,
+            "therapeute_nom": t.nom if t else "",
+            "therapeute_prenom": t.prenom if t else ""
+        })
+    db.close()
+    return result
+
+@app.get("/api/seances-therapeute/{therapeute_id}")
+def get_seances_therapeute(therapeute_id: int):
+    db = SessionLocal()
+    seances = db.query(Seance).filter(
+        Seance.therapeute_id == therapeute_id
+    ).order_by(Seance.date_heure).all()
+
+    result = []
+    for s in seances:
+        p = db.query(User).filter(User.id == s.patient_id).first()
+        result.append({
+            "id": s.id,
+            "date_heure": s.date_heure.isoformat() if s.date_heure else "",
+            "type_seance": s.type_seance,
+            "statut": s.statut,
+            "patient_nom": p.nom if p else "",
+            "patient_prenom": p.prenom if p else ""
+        })
+    db.close()
+    return result
+
+@app.post("/api/notes-seance")
+def ajouter_notes(data: NotesSeanceData):
+    db = SessionLocal()
+    seance = db.query(Seance).filter(Seance.id == data.seance_id).first()
+    if not seance:
+        db.close()
+        raise HTTPException(status_code=404, detail="Séance non trouvée")
+    seance.notes_therapeute = data.notes
+    seance.statut = "terminee"
+    db.commit()
+    db.close()
+    return {"message": "Notes sauvegardées"}
+
+
+# ─── AVIS ──────────────────────────────────────────────────────────────────────
+
+@app.post("/api/avis")
+def ajouter_avis(data: AvisData):
+    db = SessionLocal()
+    avis = Avis(
+        patient_id=data.patient_id,
+        therapeute_id=data.therapeute_id,
+        seance_id=data.seance_id,
+        note=data.note,
+        commentaire=data.commentaire
+    )
+    db.add(avis)
+    db.commit()
+
+    # Mettre à jour la note moyenne du thérapeute
+    tous_avis = db.query(Avis).filter(Avis.therapeute_id == data.therapeute_id).all()
+    moyenne = sum(a.note for a in tous_avis) // len(tous_avis)
+    t = db.query(User).filter(User.id == data.therapeute_id).first()
+    if t:
+        t.note_moyenne = moyenne
+        t.nombre_avis = len(tous_avis)
+        db.commit()
+
+    db.close()
+    return {"message": "Avis ajouté"}
+
+
+# ─── PATIENTS ──────────────────────────────────────────────────────────────────
 
 @app.get("/api/mes-patients/{therapeute_id}")
 def get_mes_patients(therapeute_id: int):
@@ -286,16 +466,19 @@ def get_mes_patients(therapeute_id: int):
     ).all()
     patients = []
     for m in matchings:
-        patient = db.query(User).filter(User.id == m.patient_id).first()
-        if patient:
+        p = db.query(User).filter(User.id == m.patient_id).first()
+        if p:
             patients.append({
-                "id": patient.id,
-                "nom": patient.nom,
-                "prenom": patient.prenom
+                "id": p.id,
+                "nom": p.nom,
+                "prenom": p.prenom,
+                "problematique": p.problematique or ""
             })
     db.close()
     return patients
 
+
+# ─── ADMIN ─────────────────────────────────────────────────────────────────────
 
 @app.get("/admin/supprimer-fake-therapeutes")
 def supprimer_fake():

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nafs App - Compléter mon profil</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .navbar { background: #1B4332; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
+        .container { max-width: 650px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .card-title { font-size: 20px; font-weight: bold; color: #1B4332; margin-bottom: 6px; }
+        .card-sub { color: #888; font-size: 14px; margin-bottom: 28px; }
+        .field { margin-bottom: 20px; }
+        .field label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 600; }
+        .field input, .field textarea, .field select {
+            width: 100%; padding: 12px 15px; border: 1.5px solid #e0e0e0;
+            border-radius: 10px; font-size: 14px; outline: none;
+            transition: border 0.2s; font-family: inherit;
+        }
+        .field input:focus, .field textarea:focus, .field select:focus { border-color: #2D6A4F; }
+        .field textarea { height: 100px; resize: vertical; }
+        .field .hint { font-size: 12px; color: #aaa; margin-top: 4px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1.5px solid #e0e0e0; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+        .checkbox-item:hover { border-color: #52B788; }
+        .checkbox-item.checked { border-color: #2D6A4F; background: #f0faf5; }
+        .checkbox-item input { width: auto; margin: 0; }
+        .checkbox-item span { font-size: 13px; color: #555; }
+        .btn-submit { background: #1B4332; color: white; border: none; border-radius: 12px; padding: 16px 32px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; margin-top: 10px; }
+        .btn-submit:hover { background: #2D6A4F; }
+        .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
+        .progress { display: flex; gap: 8px; margin-bottom: 30px; }
+        .progress-step { flex: 1; height: 4px; background: #e0e0e0; border-radius: 2px; }
+        .progress-step.done { background: #2D6A4F; }
+        .success { text-align: center; padding: 40px; display: none; }
+        .success h3 { color: #1B4332; font-size: 22px; margin-bottom: 10px; }
+        .success p { color: #888; font-size: 14px; margin-bottom: 24px; }
+        .btn-dashboard { background: #1B4332; color: white; border: none; border-radius: 12px; padding: 14px 32px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">نفس</div>
+</nav>
+
+<div class="container">
+    <div class="card" id="form-card">
+        <div class="card-title">Complétez votre profil 👨‍⚕️</div>
+        <div class="card-sub">Ces informations seront visibles par les patients</div>
+
+        <div class="progress">
+            <div class="progress-step done"></div>
+            <div class="progress-step done"></div>
+            <div class="progress-step"></div>
+        </div>
+
+        <!-- Bio -->
+        <div class="field">
+            <label>À propos de vous</label>
+            <textarea id="bio" placeholder="Décrivez votre approche thérapeutique, votre expérience..."></textarea>
+        </div>
+
+        <!-- Spécialités -->
+        <div class="field">
+            <label>Vos spécialités</label>
+            <div class="checkbox-grid" id="specialites-grid">
+                <div class="checkbox-item" onclick="toggleCheck(this, 'specialites', 'Anxiété')">
+                    <span>😰 Anxiété / Stress</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'specialites', 'Dépression')">
+                    <span>😔 Dépression</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'specialites', 'Couple')">
+                    <span>💑 Thérapie de couple</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'specialites', 'Trauma')">
+                    <span>🧠 Trauma / PTSD</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'specialites', 'Famille')">
+                    <span>👨‍👩‍👧 Thérapie familiale</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'specialites', 'Addiction')">
+                    <span>🔄 Addiction</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Langues -->
+        <div class="field">
+            <label>Langues parlées</label>
+            <div class="checkbox-grid">
+                <div class="checkbox-item" onclick="toggleCheck(this, 'langues', 'Darija')">
+                    <span>🇲🇦 Darija</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'langues', 'Français')">
+                    <span>🇫🇷 Français</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'langues', 'Amazigh')">
+                    <span>ⴰ Amazigh</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'langues', 'Arabe classique')">
+                    <span>🌍 Arabe classique</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarif + Expérience -->
+        <div class="grid-2">
+            <div class="field">
+                <label>Tarif par séance (MAD)</label>
+                <input type="number" id="tarif" placeholder="ex: 300">
+            </div>
+            <div class="field">
+                <label>Années d'expérience</label>
+                <input type="number" id="experience" placeholder="ex: 5">
+            </div>
+        </div>
+
+        <!-- Diplôme + Genre -->
+        <div class="grid-2">
+            <div class="field">
+                <label>Diplôme principal</label>
+                <input type="text" id="diplome" placeholder="ex: Doctorat en psychologie">
+            </div>
+            <div class="field">
+                <label>Genre</label>
+                <select id="genre">
+                    <option value="">Choisir...</option>
+                    <option value="Homme">Homme</option>
+                    <option value="Femme">Femme</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Disponibilités -->
+        <div class="field">
+            <label>Vos disponibilités</label>
+            <div class="checkbox-grid">
+                <div class="checkbox-item" onclick="toggleCheck(this, 'dispos', 'Lundi')">
+                    <span>Lundi</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'dispos', 'Mardi')">
+                    <span>Mardi</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'dispos', 'Mercredi')">
+                    <span>Mercredi</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'dispos', 'Jeudi')">
+                    <span>Jeudi</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'dispos', 'Vendredi')">
+                    <span>Vendredi</span>
+                </div>
+                <div class="checkbox-item" onclick="toggleCheck(this, 'dispos', 'Samedi')">
+                    <span>Samedi</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-submit" onclick="sauvegarder()" id="btn-save">
+            ✅ Sauvegarder mon profil
+        </button>
+    </div>
+
+    <!-- Succès -->
+    <div class="success" id="success">
+        <div style="font-size:60px;margin-bottom:16px">🎉</div>
+        <h3>Profil complété !</h3>
+        <p>Votre profil est maintenant visible par les patients.<br>Vous pouvez commencer à recevoir des demandes.</p>
+        <button class="btn-dashboard" onclick="window.location.href='/dashboard-therapeute'">
+            → Aller au dashboard
+        </button>
+    </div>
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user || user.role !== 'therapeute') window.location.href = '/login';
+
+    const selections = {
+        specialites: [],
+        langues: [],
+        dispos: []
+    };
+
+    function toggleCheck(el, type, valeur) {
+        el.classList.toggle('checked');
+        if (el.classList.contains('checked')) {
+            selections[type].push(valeur);
+        } else {
+            selections[type] = selections[type].filter(v => v !== valeur);
+        }
+    }
+
+    async function sauvegarder() {
+        const btn = document.getElementById('btn-save');
+        btn.disabled = true;
+        btn.textContent = '⏳ Sauvegarde...';
+
+        const payload = {
+            therapeute_id: user.id,
+            bio: document.getElementById('bio').value.trim() || null,
+            specialites: selections.specialites.join(',') || null,
+            langues: selections.langues.join(',') || null,
+            tarif: parseInt(document.getElementById('tarif').value) || null,
+            experience_ans: parseInt(document.getElementById('experience').value) || null,
+            diplome: document.getElementById('diplome').value.trim() || null,
+            genre: document.getElementById('genre').value || null,
+            disponibilites: selections.dispos.join(',') || null
+        };
+
+        try {
+            const res = await fetch('/api/profil-therapeute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                // Mettre à jour localStorage
+                const userUpdated = { ...user, profil_complete: true };
+                localStorage.setItem('user', JSON.stringify(userUpdated));
+
+                document.getElementById('form-card').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+
+                // Redirection auto après 3 secondes
+                setTimeout(() => {
+                    window.location.href = '/dashboard-therapeute';
+                }, 3000);
+            } else {
+                throw new Error('Erreur serveur');
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btn.textContent = '✅ Sauvegarder mon profil';
+            alert('Erreur. Réessayez.');
+        }
+    }
+</script>
+</body>
+</html>

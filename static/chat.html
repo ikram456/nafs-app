@@ -11,25 +11,25 @@
         .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
         .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; cursor: pointer; }
         .chat-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; max-width: 800px; width: 100%; margin: 0 auto; background: white; }
-        .chat-header { padding: 15px 25px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #e0e0e0; background: white; }
+        .chat-header { padding: 15px 25px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #e0e0e0; background: white; flex-shrink: 0; }
         .avatar-circle { width: 45px; height: 45px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; font-weight: bold; flex-shrink: 0; }
         .chat-header h4 { color: #333; font-size: 15px; margin: 0; }
         .chat-header p { color: #2D6A4F; font-size: 12px; margin: 0; }
-        .badge-prive { margin-left: auto; background: #f0faf5; border: 1px solid #52B788; border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #2D6A4F; }
-        .status-bar { text-align: center; padding: 6px; font-size: 12px; color: #2D6A4F; background: #f0faf5; border-bottom: 1px solid #e8f5ee; }
+        .badge-prive { margin-left: auto; background: #f0faf5; border: 1px solid #52B788; border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #2D6A4F; white-space: nowrap; }
+        .status-bar { text-align: center; padding: 6px; font-size: 12px; color: #2D6A4F; background: #f0faf5; border-bottom: 1px solid #e8f5ee; flex-shrink: 0; }
         .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: #f8f9fa; }
         .msg { display: flex; flex-direction: column; max-width: 65%; }
         .msg.moi { align-self: flex-end; align-items: flex-end; }
         .msg.autre { align-self: flex-start; align-items: flex-start; }
         .msg-nom { font-size: 11px; color: #aaa; margin-bottom: 3px; }
-        .msg-bulle { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+        .msg-bulle { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-word; max-width: 100%; }
         .moi .msg-bulle { background: #2D6A4F; color: white; border-bottom-right-radius: 4px; }
         .autre .msg-bulle { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
         .msg-heure { font-size: 10px; color: #bbb; margin-top: 3px; }
-        .input-zone { background: white; padding: 14px 20px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #e0e0e0; }
-        .input-zone input { flex: 1; padding: 12px 18px; border: 1.5px solid #e0e0e0; border-radius: 25px; font-size: 14px; outline: none; }
+        .input-zone { background: white; padding: 14px 20px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #e0e0e0; flex-shrink: 0; }
+        .input-zone input { flex: 1; padding: 12px 18px; border: 1.5px solid #e0e0e0; border-radius: 25px; font-size: 14px; outline: none; transition: border 0.2s; }
         .input-zone input:focus { border-color: #2D6A4F; }
-        .btn-envoyer { width: 46px; height: 46px; background: #2D6A4F; border: none; border-radius: 50%; cursor: pointer; color: white; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-envoyer { width: 46px; height: 46px; background: #2D6A4F; border: none; border-radius: 50%; cursor: pointer; color: white; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
         .btn-envoyer:hover { background: #1B4332; }
         .no-match { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
         .no-match h3 { color: #333; margin-bottom: 12px; }
@@ -56,10 +56,10 @@ const user = JSON.parse(localStorage.getItem('user') || 'null');
 if (!user) window.location.href = '/login';
 
 const matching = JSON.parse(localStorage.getItem('matching') || 'null');
-const app = document.getElementById('app');
+const appDiv = document.getElementById('app');
 
 if (!matching || !matching.therapeute_id) {
-    app.innerHTML = `
+    appDiv.innerHTML = `
         <div class="no-match">
             <div style="font-size:60px;margin-bottom:16px">👨‍⚕️</div>
             <h3>Choisissez un thérapeute</h3>
@@ -70,10 +70,15 @@ if (!matching || !matching.therapeute_id) {
         </div>
     `;
 } else {
+    const therapeuteId = parseInt(matching.therapeute_id);
+    const patientId = parseInt(user.id);
     const initiale = (matching.therapeute_prenom || 'T')[0].toUpperCase();
     const nomComplet = 'Dr. ' + (matching.therapeute_prenom || '') + ' ' + (matching.therapeute_nom || '');
 
-    app.innerHTML = `
+    // ✅ Room ID fixe et identique des deux côtés
+    const roomId = 'patient' + patientId + '_therapeute' + therapeuteId;
+
+    appDiv.innerHTML = `
         <div class="chat-wrap">
             <div class="chat-header">
                 <div class="avatar-circle">${initiale}</div>
@@ -104,25 +109,26 @@ if (!matching || !matching.therapeute_id) {
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    const roomId = `patient${user.id}_therapeute${matching.therapeute_id}`;
     const messagesRef = db.ref('chats/' + roomId + '/messages');
 
     messagesRef.on('value', (snapshot) => {
         document.getElementById('status').textContent = '🟢 Connecté — conversation privée';
         const container = document.getElementById('messages');
         container.innerHTML = '';
+
         if (snapshot.exists()) {
-            Object.values(snapshot.val()).forEach(msg => {
-                const estMoi = String(msg.auteur_id) === String(user.id);
+            const msgs = snapshot.val();
+            Object.keys(msgs).forEach(key => {
+                const msg = msgs[key];
+                const estMoi = String(msg.auteur_id) === String(patientId);
                 const div = document.createElement('div');
                 div.className = 'msg ' + (estMoi ? 'moi' : 'autre');
                 const heure = msg.timestamp
                     ? new Date(msg.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
                     : '';
                 div.innerHTML = `
-                    ${!estMoi ? `<div class="msg-nom">${msg.auteur_prenom || ''}</div>` : ''}
-                    <div class="msg-bulle">${msg.texte}</div>
+                    ${!estMoi ? '<div class="msg-nom">' + (msg.auteur_prenom || '') + '</div>' : ''}
+                    <div class="msg-bulle">${msg.texte || ''}</div>
                     <div class="msg-heure">${heure}</div>
                 `;
                 container.appendChild(div);
@@ -130,27 +136,28 @@ if (!matching || !matching.therapeute_id) {
             container.scrollTop = container.scrollHeight;
         }
     }, (error) => {
-        document.getElementById('status').textContent = '❌ Erreur : ' + error.message;
+        document.getElementById('status').textContent = '❌ Erreur Firebase';
     });
 
     function envoyer() {
         const input = document.getElementById('msg-input');
         const texte = input.value.trim();
         if (!texte) return;
+
         messagesRef.push({
             texte: texte,
-            auteur_id: user.id,
-            auteur_prenom: user.prenom,
+            auteur_id: patientId,
+            auteur_prenom: user.prenom || 'Patient',
             timestamp: Date.now()
         }).then(() => {
             input.value = '';
         }).catch(err => {
-            alert('Erreur : ' + err.message);
+            alert('Erreur envoi : ' + err.message);
         });
     }
 
     document.getElementById('btn-send').addEventListener('click', envoyer);
-    document.getElementById('msg-input').addEventListener('keypress', e => {
+    document.getElementById('msg-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') envoyer();
     });
 }

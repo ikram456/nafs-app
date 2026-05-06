@@ -518,3 +518,7 @@ def alter_tables():
     db.commit()
     db.close()
     return {"message": "Tables mises à jour"}
+
+@app.get("/therapeute")
+def therapeute_profil():
+    return FileResponse("static/therapeute.html")

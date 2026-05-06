@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nafs App - Profil Thérapeute</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .navbar { background: #2D6A4F; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
+        .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; cursor: pointer; }
+        .container { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 16px; padding: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .profil-header { display: flex; align-items: center; gap: 24px; margin-bottom: 24px; }
+        .avatar { width: 90px; height: 90px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white; font-weight: bold; flex-shrink: 0; }
+        .profil-info h2 { color: #1B4332; font-size: 22px; margin-bottom: 4px; }
+        .profil-info p { color: #888; font-size: 14px; }
+        .note { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+        .etoiles { color: #f4a261; font-size: 16px; }
+        .note-val { font-size: 14px; color: #555; }
+        .badge-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .badge { background: #f0faf5; border: 1px solid #52B788; border-radius: 20px; padding: 5px 14px; font-size: 13px; color: #2D6A4F; }
+        .badge.tarif { background: #fff3e0; border-color: #f4a261; color: #e76f51; font-weight: 600; }
+        .section-title { font-size: 15px; font-weight: 600; color: #1B4332; margin-bottom: 12px; }
+        .bio { color: #555; font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+        .info-item { background: #f8f9fa; border-radius: 10px; padding: 14px; }
+        .info-label { font-size: 11px; color: #aaa; text-transform: uppercase; margin-bottom: 4px; }
+        .info-val { font-size: 14px; color: #333; font-weight: 600; }
+        .dispo-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .dispo-tag { background: #e8f5e9; border-radius: 8px; padding: 6px 14px; font-size: 13px; color: #2D6A4F; }
+        .avis-item { padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+        .avis-item:last-child { border-bottom: none; }
+        .avis-note { color: #f4a261; font-size: 14px; }
+        .avis-texte { color: #555; font-size: 14px; margin-top: 4px; }
+        .avis-date { color: #aaa; font-size: 12px; margin-top: 4px; }
+        .btn-choisir { background: #2D6A4F; color: white; border: none; border-radius: 12px; padding: 16px 32px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
+        .btn-choisir:hover { background: #1B4332; }
+        .btn-choisir:disabled { background: #aaa; cursor: not-allowed; }
+        .loading { text-align: center; padding: 60px; color: #888; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="logo">نفس</div>
+    <div>
+        <a onclick="window.location.href='/therapeutes'">← Retour à la liste</a>
+    </div>
+</nav>
+
+<div class="container" id="container">
+    <div class="loading">Chargement...</div>
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!user) window.location.href = '/login';
+
+    // Récupérer l'ID du thérapeute depuis l'URL
+    const params = new URLSearchParams(window.location.search);
+    const therapeuteId = params.get('id');
+    if (!therapeuteId) window.location.href = '/therapeutes';
+
+    const couleurs = ['#52B788', '#4A90D9', '#E76F51', '#9B5DE5', '#F15BB5'];
+
+    function etoiles(note) {
+        return '★'.repeat(note) + '☆'.repeat(5 - note);
+    }
+
+    async function chargerProfil() {
+        try {
+            const res = await fetch('/api/therapeute/' + therapeuteId);
+            const t = await res.json();
+            const couleur = couleurs[t.id % couleurs.length];
+            const initiale = (t.prenom || 'T')[0].toUpperCase();
+
+            const specialites = t.specialites ? t.specialites.split(',') : [];
+            const langues = t.langues ? t.langues.split(',') : [];
+            const dispos = t.disponibilites ? t.disponibilites.split(',') : [];
+
+            document.getElementById('container').innerHTML = `
+                <div class="card">
+                    <div class="profil-header">
+                        <div class="avatar" style="background:${couleur}">${initiale}</div>
+                        <div class="profil-info">
+                            <h2>Dr. ${t.prenom} ${t.nom}</h2>
+                            <p>${t.diplome || 'Thérapeute certifié'}</p>
+                            <div class="note">
+                                <span class="etoiles">${etoiles(t.note_moyenne || 0)}</span>
+                                <span class="note-val">${t.note_moyenne || 0}/5 (${t.nombre_avis || 0} avis)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="badge-grid">
+                        ${specialites.map(s => `<span class="badge">🧠 ${s.trim()}</span>`).join('')}
+                        ${langues.map(l => `<span class="badge">🌍 ${l.trim()}</span>`).join('')}
+                        ${t.tarif ? `<span class="badge tarif">💰 ${t.tarif} MAD / séance</span>` : ''}
+                        ${t.experience_ans ? `<span class="badge">⭐ ${t.experience_ans} ans d'expérience</span>` : ''}
+                    </div>
+
+                    ${t.bio ? `
+                    <div class="section-title">À propos</div>
+                    <div class="bio">${t.bio}</div>
+                    ` : ''}
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Genre</div>
+                            <div class="info-val">${t.genre || 'Non précisé'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Tarif</div>
+                            <div class="info-val">${t.tarif ? t.tarif + ' MAD' : 'Non précisé'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Expérience</div>
+                            <div class="info-val">${t.experience_ans ? t.experience_ans + ' ans' : 'Non précisé'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Diplôme</div>
+                            <div class="info-val">${t.diplome || 'Non précisé'}</div>
+                        </div>
+                    </div>
+
+                    ${dispos.length > 0 ? `
+                    <div class="section-title">Disponibilités</div>
+                    <div class="dispo-list">
+                        ${dispos.map(d => `<span class="dispo-tag">📅 ${d.trim()}</span>`).join('')}
+                    </div>
+                    ` : ''}
+
+                    <button class="btn-choisir" id="btn-choisir" onclick="choisirThérapeute()">
+                        💬 Choisir ce thérapeute
+                    </button>
+                </div>
+            `;
+        } catch(e) {
+            document.getElementById('container').innerHTML =
+                '<p style="text-align:center;color:red">Erreur de chargement</p>';
+        }
+    }
+
+    async function choisirThérapeute() {
+        const btn = document.getElementById('btn-choisir');
+        btn.disabled = true;
+        btn.textContent = '⏳ Chargement...';
+
+        try {
+            const res = await fetch('/api/choisir-therapeute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    patient_id: user.id,
+                    therapeute_id: parseInt(therapeuteId)
+                })
+            });
+            const data = await res.json();
+
+            localStorage.setItem('matching', JSON.stringify({
+                therapeute_id: data.therapeute_id,
+                therapeute_nom: data.therapeute_nom,
+                therapeute_prenom: data.therapeute_prenom,
+                room_id: data.room_id
+            }));
+
+            window.location.href = '/chat';
+        } catch(e) {
+            btn.disabled = false;
+            btn.textContent = '💬 Choisir ce thérapeute';
+            alert('Erreur. Réessayez.');
+        }
+    }
+
+    chargerProfil();
+</script>
+</body>
+</html>

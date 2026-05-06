@@ -487,3 +487,34 @@ def supprimer_fake():
     db.commit()
     db.close()
     return {"message": "Thérapeutes supprimés avec succès"}
+
+@app.get("/admin/alter-tables")
+def alter_tables():
+    from sqlalchemy import text
+    db = SessionLocal()
+    colonnes = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS specialites VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS langues VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS tarif INTEGER",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS experience_ans INTEGER",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS diplome VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS genre VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS disponibilites VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS profil_complete BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS photo_url VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS note_moyenne INTEGER DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS nombre_avis INTEGER DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS problematique VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS langue_preferee VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS genre_therapeute VARCHAR",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS disponibilite VARCHAR",
+    ]
+    for col in colonnes:
+        try:
+            db.execute(text(col))
+        except:
+            pass
+    db.commit()
+    db.close()
+    return {"message": "Tables mises à jour"}

@@ -4,9 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi import HTTPException
 from pydantic import BaseModel
-import httpx
 from database import engine, Base, SessionLocal
 from models import user, therapeute
+from models.matching import Questionnaire, Matching
+from models.user import User
 from controllers.auth_controller import connecter_user, inscrire_user
 
 Base.metadata.create_all(bind=engine)
@@ -36,6 +37,17 @@ class InscriptionData(BaseModel):
     mot_de_passe: str
     role: str = "patient"
 
+class QuestionnaireData(BaseModel):
+    patient_id: int
+    problematique: str
+    langue: str
+    genre_therapeute: str
+    disponibilite: str
+
+class ChoixTherapeuteData(BaseModel):
+    patient_id: int
+    therapeute_id: int
+
 
 # ─── PAGES STATIQUES ───────────────────────────────────────────────────────────
 
@@ -47,12 +59,9 @@ def home():
 def login():
     return FileResponse("static/login.html")
 
-# Ancienne route dashboard → redirige vers login (le JS redirige ensuite selon le rôle)
 @app.get("/dashboard")
 def dashboard():
     return FileResponse("static/login.html")
-
-# ─── DASHBOARDS PAR RÔLE ───────────────────────────────────────────────────────
 
 @app.get("/dashboard-patient")
 def dashboard_patient():
@@ -65,12 +74,10 @@ def dashboard_therapeute():
 @app.get("/dashboard-admin")
 def dashboard_admin():
     return FileResponse("static/dashboard-admin.html")
-    
-@app.get("/matching")
-def matching():
-    return FileResponse("static/matching.html")
 
-# ─── AUTRES PAGES ──────────────────────────────────────────────────────────────
+@app.get("/questionnaire")
+def questionnaire():
+    return FileResponse("static/questionnaire.html")
 
 @app.get("/therapeutes")
 def therapeutes():
@@ -83,6 +90,10 @@ def reservation():
 @app.get("/chat")
 def chat():
     return FileResponse("static/chat.html")
+
+@app.get("/chat-therapeute")
+def chat_therapeute():
+    return FileResponse("static/chat-therapeute.html")
 
 @app.get("/profil")
 def profil():
@@ -156,36 +167,21 @@ def inscription(data: InscriptionData):
         "prenom": result.prenom,
         "role": result.role
     }
-# En haut, ajoute ces imports
-from models.matching import Questionnaire, Matching
-from models.user import User
 
-# ─── ROUTES QUESTIONNAIRE & MATCHING ──────────────────────────
 
-class QuestionnaireData(BaseModel):
-    patient_id: int
-    problematique: str
-    langue: str
-    genre_therapeute: str
-    disponibilite: str
-
-@app.get("/questionnaire")
-def questionnaire():
-    return FileResponse("static/questionnaire.html")
+# ─── QUESTIONNAIRE & MATCHING ──────────────────────────────────────────────────
 
 @app.post("/api/questionnaire")
 def soumettre_questionnaire(data: QuestionnaireData):
     db = SessionLocal()
-    
-    # Vérifier si déjà soumis
+
     existant = db.query(Questionnaire).filter(
         Questionnaire.patient_id == data.patient_id
     ).first()
     if existant:
         db.close()
-        return {"message": "Questionnaire déjà soumis", "deja_fait": True}
-    
-    # Sauvegarder questionnaire
+        return {"message": "Questionnaire déjà soumis", "deja_fait": True, "therapeute_id": None}
+
     q = Questionnaire(
         patient_id=data.patient_id,
         problematique=data.problematique,
@@ -195,12 +191,10 @@ def soumettre_questionnaire(data: QuestionnaireData):
     )
     db.add(q)
     db.commit()
-    
-    # Algorithme de matching simple
-    # Cherche un thérapeute avec role="therapeute"
-    therapeutes = db.query(User).filter(User.role == "therapeute").all()
-    therapeute_choisi = therapeutes[0] if therapeutes else None
-    
+
+    therapeutes_liste = db.query(User).filter(User.role == "therapeute").all()
+    therapeute_choisi = therapeutes_liste[0] if therapeutes_liste else None
+
     if therapeute_choisi:
         matching = Matching(
             patient_id=data.patient_id,
@@ -208,7 +202,6 @@ def soumettre_questionnaire(data: QuestionnaireData):
         )
         db.add(matching)
         db.commit()
-        db.refresh(matching)
         db.close()
         return {
             "message": "Matching trouvé",
@@ -216,9 +209,42 @@ def soumettre_questionnaire(data: QuestionnaireData):
             "therapeute_nom": therapeute_choisi.nom,
             "therapeute_prenom": therapeute_choisi.prenom
         }
-    
+
     db.close()
     return {"message": "Aucun thérapeute disponible", "therapeute_id": None}
+
+
+# ─── NOUVEAU : Sauvegarder le choix d'un thérapeute depuis la liste ────────────
+
+@app.post("/api/choisir-therapeute")
+def choisir_therapeute(data: ChoixTherapeuteData):
+    db = SessionLocal()
+
+    # Vérifier si matching existe déjà
+    existant = db.query(Matching).filter(
+        Matching.patient_id == data.patient_id,
+        Matching.therapeute_id == data.therapeute_id
+    ).first()
+
+    if not existant:
+        matching = Matching(
+            patient_id=data.patient_id,
+            therapeute_id=data.therapeute_id
+        )
+        db.add(matching)
+        db.commit()
+
+    therapeute = db.query(User).filter(User.id == data.therapeute_id).first()
+    db.close()
+
+    return {
+        "message": "Thérapeute choisi",
+        "therapeute_id": data.therapeute_id,
+        "therapeute_nom": therapeute.nom if therapeute else "",
+        "therapeute_prenom": therapeute.prenom if therapeute else "",
+        "room_id": f"patient{data.patient_id}_therapeute{data.therapeute_id}"
+    }
+
 
 @app.get("/api/matching/{patient_id}")
 def get_matching(patient_id: int):
@@ -229,44 +255,28 @@ def get_matching(patient_id: int):
     if not matching:
         db.close()
         raise HTTPException(status_code=404, detail="Pas de matching")
-    
-    therapeute = db.query(User).filter(
-        User.id == matching.therapeute_id
-    ).first()
+
+    t = db.query(User).filter(User.id == matching.therapeute_id).first()
     db.close()
-    
+
     return {
         "therapeute_id": matching.therapeute_id,
-        "therapeute_nom": therapeute.nom if therapeute else "Inconnu",
-        "therapeute_prenom": therapeute.prenom if therapeute else "",
+        "therapeute_nom": t.nom if t else "Inconnu",
+        "therapeute_prenom": t.prenom if t else "",
         "room_id": f"patient{patient_id}_therapeute{matching.therapeute_id}"
     }
-    
-@app.get("/admin/supprimer-fake-therapeutes")
-def supprimer_fake():
-    db = SessionLocal()
-    db.query(User).filter(User.role == "therapeute").delete()
-    db.commit()
-    db.close()
-    return {"message": "Thérapeutes supprimés avec succès"}
+
 
 @app.get("/api/therapeutes")
 def get_therapeutes():
     db = SessionLocal()
-    therapeutes = db.query(User).filter(User.role == "therapeute").all()
+    therapeutes_liste = db.query(User).filter(User.role == "therapeute").all()
     db.close()
     return [
-        {
-            "id": t.id,
-            "nom": t.nom,
-            "prenom": t.prenom,
-        }
-        for t in therapeutes
+        {"id": t.id, "nom": t.nom, "prenom": t.prenom}
+        for t in therapeutes_liste
     ]
-    
-@app.get("/chat-therapeute")
-def chat_therapeute():
-    return FileResponse("static/chat-therapeute.html")
+
 
 @app.get("/api/mes-patients/{therapeute_id}")
 def get_mes_patients(therapeute_id: int):
@@ -285,3 +295,12 @@ def get_mes_patients(therapeute_id: int):
             })
     db.close()
     return patients
+
+
+@app.get("/admin/supprimer-fake-therapeutes")
+def supprimer_fake():
+    db = SessionLocal()
+    db.query(User).filter(User.role == "therapeute").delete()
+    db.commit()
+    db.close()
+    return {"message": "Thérapeutes supprimés avec succès"}

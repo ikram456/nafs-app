@@ -115,13 +115,32 @@
         document.getElementById('role-' + role).classList.add('active');
     }
 
-    function redirigerSelonRole(role) {
+    function redirigerApresInscription(role, profilComplete) {
         if (role === 'admin') {
             window.location.href = '/dashboard-admin';
         } else if (role === 'therapeute') {
-            window.location.href = '/dashboard-therapeute';
+            // Thérapeute → toujours compléter le profil après inscription
+            window.location.href = '/profil-therapeute';
         } else {
+            // Patient → questionnaire
             window.location.href = '/questionnaire';
+        }
+    }
+
+    function redirigerApresConnexion(role, profilComplete) {
+        if (role === 'admin') {
+            window.location.href = '/dashboard-admin';
+        } else if (role === 'therapeute') {
+            // Thérapeute → profil si pas complété, sinon dashboard
+            if (!profilComplete) {
+                window.location.href = '/profil-therapeute';
+            } else {
+                window.location.href = '/dashboard-therapeute';
+            }
+        } else {
+            // Patient → dashboard si matching existe, sinon liste thérapeutes
+            const matching = localStorage.getItem('matching');
+            window.location.href = matching ? '/dashboard-patient' : '/therapeutes';
         }
     }
 
@@ -147,21 +166,17 @@
             if (response.ok) {
                 msg.className = 'message success';
                 msg.textContent = 'Marhaba ' + data.prenom + ' !';
+
                 localStorage.setItem('user', JSON.stringify({
                     id: data.id,
                     nom: data.nom,
                     prenom: data.prenom,
-                    role: data.role
+                    role: data.role,
+                    profil_complete: data.profil_complete
                 }));
+
                 setTimeout(() => {
-                    if (data.role === 'admin') {
-                        window.location.href = '/dashboard-admin';
-                    } else if (data.role === 'therapeute') {
-                        window.location.href = '/dashboard-therapeute';
-                    } else {
-                        const matching = localStorage.getItem('matching');
-                        window.location.href = matching ? '/dashboard-patient' : '/therapeutes';
-                    }
+                    redirigerApresConnexion(data.role, data.profil_complete);
                 }, 1500);
             } else {
                 msg.className = 'message error';
@@ -205,11 +220,16 @@
                     id: data.id,
                     nom: data.nom,
                     prenom: data.prenom,
-                    role: data.role
+                    role: data.role,
+                    profil_complete: false
                 }));
+
                 msg.className = 'message success';
                 msg.textContent = 'Compte créé ! Redirection...';
-                setTimeout(() => redirigerSelonRole(data.role), 1000);
+
+                setTimeout(() => {
+                    redirigerApresInscription(data.role, false);
+                }, 1000);
             } else {
                 msg.className = 'message error';
                 msg.textContent = data.detail;

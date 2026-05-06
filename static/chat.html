@@ -3,166 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nafs App - Chat</title>
+    <title>Nafs - Messages</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; height: 100vh; display: flex; flex-direction: column; }
-        .navbar { background: #2D6A4F; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .navbar { background: #1B4332; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
         .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; cursor: pointer; }
-        .chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .chat-header { background: white; padding: 15px 25px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #e0e0e0; }
-        .chat-header .avatar { width: 45px; height: 45px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; font-weight: bold; }
-        .chat-header h4 { color: #333; font-size: 15px; }
-        .chat-header p { color: #2D6A4F; font-size: 12px; }
-        .confidential-badge { margin-left: auto; background: #f0faf5; border: 1px solid #52B788; border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #2D6A4F; }
-        .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #f8f9fa; }
-        .message { display: flex; align-items: flex-end; gap: 8px; max-width: 70%; }
-        .message.sent { align-self: flex-end; flex-direction: row-reverse; }
-        .message.received { align-self: flex-start; }
-        .message .avatar { width: 32px; height: 32px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 13px; color: white; font-weight: bold; flex-shrink: 0; }
-        .bubble { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; }
-        .message.received .bubble { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .message.sent .bubble { background: #2D6A4F; color: white; border-bottom-right-radius: 4px; }
-        .message .time { font-size: 10px; color: #aaa; margin: 0 4px 2px; align-self: flex-end; }
-        .input-area { background: white; padding: 12px 20px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #e0e0e0; }
-        .input-area input { flex: 1; padding: 12px 18px; border: 1px solid #e0e0e0; border-radius: 25px; font-size: 14px; outline: none; }
-        .input-area input:focus { border-color: #2D6A4F; }
-        .btn-send { width: 44px; height: 44px; background: #2D6A4F; border: none; border-radius: 50%; cursor: pointer; color: white; font-size: 18px; }
-        .status-bar { text-align: center; padding: 6px; font-size: 12px; color: #2D6A4F; background: #f0faf5; border-bottom: 1px solid #e8f5ee; }
-        .no-match-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
-        .no-match-screen h3 { color: #333; margin-bottom: 12px; }
-        .no-match-screen p { color: #888; font-size: 14px; margin-bottom: 24px; }
-        .btn-go { background: #2D6A4F; color: white; padding: 12px 28px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .layout { flex: 1; display: flex; overflow: hidden; }
+        .sidebar { width: 280px; background: white; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-title { padding: 20px; font-weight: bold; color: #333; border-bottom: 1px solid #e0e0e0; font-size: 15px; }
+        .patients-list { flex: 1; overflow-y: auto; }
+        .patient-row { padding: 14px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #f5f5f5; transition: background 0.2s; }
+        .patient-row:hover, .patient-row.actif { background: #f0faf5; }
+        .p-avatar { width: 44px; height: 44px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; font-weight: bold; flex-shrink: 0; }
+        .p-nom { font-weight: 600; font-size: 14px; color: #333; }
+        .p-info { font-size: 12px; color: #888; margin-top: 2px; }
+        .vide { padding: 40px 20px; text-align: center; color: #888; font-size: 14px; }
+        .chat-zone { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { padding: 15px 25px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #e0e0e0; background: white; flex-shrink: 0; }
+        .avatar-circle { width: 45px; height: 45px; border-radius: 50%; background: #52B788; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; font-weight: bold; }
+        .chat-header h4 { color: #333; font-size: 15px; margin: 0; }
+        .chat-header p { color: #2D6A4F; font-size: 12px; margin: 0; }
+        .status-bar { text-align: center; padding: 6px; font-size: 12px; color: #2D6A4F; background: #f0faf5; border-bottom: 1px solid #e8f5ee; flex-shrink: 0; }
+        .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: #f8f9fa; }
+        .msg { display: flex; flex-direction: column; max-width: 65%; }
+        .msg.moi { align-self: flex-end; align-items: flex-end; }
+        .msg.autre { align-self: flex-start; align-items: flex-start; }
+        .msg-nom { font-size: 11px; color: #aaa; margin-bottom: 3px; }
+        .msg-bulle { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+        .moi .msg-bulle { background: #1B4332; color: white; border-bottom-right-radius: 4px; }
+        .autre .msg-bulle { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .msg-heure { font-size: 10px; color: #bbb; margin-top: 3px; }
+        .input-zone { background: white; padding: 14px 20px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #e0e0e0; flex-shrink: 0; }
+        .input-zone input { flex: 1; padding: 12px 18px; border: 1.5px solid #e0e0e0; border-radius: 25px; font-size: 14px; outline: none; }
+        .input-zone input:focus { border-color: #1B4332; }
+        .btn-envoyer { width: 46px; height: 46px; background: #1B4332; border: none; border-radius: 50%; cursor: pointer; color: white; font-size: 20px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-envoyer:hover { background: #2D6A4F; }
+        .empty-chat { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; gap: 12px; }
     </style>
 </head>
 <body>
+
 <nav class="navbar">
     <div class="logo">نفس</div>
     <div>
-        <a onclick="retourDashboard()">← Dashboard</a>
-        <a href="/therapeutes">👨‍⚕️ Changer de thérapeute</a>
+        <a onclick="window.location.href='/dashboard-therapeute'">← Dashboard</a>
     </div>
 </nav>
 
-<div id="app" style="flex:1;display:flex;flex-direction:column;overflow:hidden;"></div>
+<div class="layout">
+    <div class="sidebar">
+        <div class="sidebar-title">💬 Mes patients</div>
+        <div class="patients-list" id="patients-list">
+            <div class="vide">Chargement...</div>
+        </div>
+    </div>
 
-<!-- Firebase SDK -->
+    <div class="chat-zone" id="chat-zone">
+        <div class="empty-chat">
+            <div style="font-size:50px">💬</div>
+            <p>Sélectionnez un patient</p>
+        </div>
+    </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (!user) window.location.href = '/login';
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (!user || user.role !== 'therapeute') window.location.href = '/login';
 
-    const matching = JSON.parse(localStorage.getItem('matching') || 'null');
+const firebaseConfig = {
+    apiKey: "AIzaSyBELf2X80gX5XPOgKJptrQBUkaPJhUDlII",
+    authDomain: "nafs-46aca.firebaseapp.com",
+    databaseURL: "https://nafs-46aca-default-rtdb.firebaseio.com",
+    projectId: "nafs-46aca",
+    storageBucket: "nafs-46aca.firebasestorage.app",
+    messagingSenderId: "721268333924",
+    appId: "1:721268333924:web:812bf60d0072b819746e71"
+};
 
-    function retourDashboard() {
-        if (user.role === 'therapeute') window.location.href = '/dashboard-therapeute';
-        else window.location.href = '/dashboard-patient';
-    }
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    const app = document.getElementById('app');
+let ecouteActuelle = null;
 
-    if (!matching || !matching.therapeute_id) {
-        app.innerHTML = `
-            <div class="no-match-screen">
-                <div style="font-size:60px;margin-bottom:16px">👨‍⚕️</div>
-                <h3>Choisissez un thérapeute</h3>
-                <p>Sélectionnez un thérapeute dans notre liste<br>pour commencer à chatter.</p>
-                <button class="btn-go" onclick="window.location.href='/therapeutes'">
-                    Voir les thérapeutes →
-                </button>
-            </div>
-        `;
-    } else {
-        const initiale = (matching.therapeute_prenom || 'T')[0].toUpperCase();
-        const nomComplet = 'Dr. ' + (matching.therapeute_prenom || '') + ' ' + (matching.therapeute_nom || '');
+// Charger la liste des patients
+async function chargerPatients() {
+    try {
+        const res = await fetch('/api/mes-patients/' + user.id);
+        const patients = await res.json();
+        const liste = document.getElementById('patients-list');
 
-        app.innerHTML = `
-            <div class="status-bar" id="status">🔄 Connexion...</div>
-            <div class="chat-main">
-                <div class="chat-header">
-                    <div class="avatar">${initiale}</div>
-                    <div>
-                        <h4>${nomComplet}</h4>
-                        <p>🟢 En ligne</p>
-                    </div>
-                    <div class="confidential-badge">🔒 Conversation privée</div>
-                </div>
-                <div class="messages" id="messages"></div>
-                <div class="input-area">
-                    <input type="text" id="msg-input" placeholder="Écrire un message..."
-                        onkeypress="if(event.key==='Enter') envoyer()">
-                    <button class="btn-send" onclick="envoyer()">➤</button>
-                </div>
-            </div>
-        `;
-
-        // Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyBELf2X80gX5XPOgKJptrQBUkaPJhUDlII",
-            authDomain: "nafs-46aca.firebaseapp.com",
-            databaseURL: "https://nafs-46aca-default-rtdb.firebaseio.com",
-            projectId: "nafs-46aca",
-            storageBucket: "nafs-46aca.firebasestorage.app",
-            messagingSenderId: "721268333924",
-            appId: "1:721268333924:web:812bf60d0072b819746e71"
-        };
-
-        // Initialiser Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+        if (patients.length === 0) {
+            liste.innerHTML = '<div class="vide">Aucun patient pour le moment</div>';
+            return;
         }
-        const db = firebase.database();
 
-        // Room privée unique
-        const roomId = matching.room_id ||
-            `patient${user.id}_therapeute${matching.therapeute_id}`;
-        const messagesRef = db.ref('chats/' + roomId + '/messages');
-
-        // Écouter les messages en temps réel
-        messagesRef.on('value', (snapshot) => {
-            document.getElementById('status').textContent = '🟢 Connecté — conversation privée';
-            const container = document.getElementById('messages');
-            container.innerHTML = '';
-            if (snapshot.exists()) {
-                const msgs = snapshot.val();
-                Object.values(msgs).forEach(msg => afficherMessage(msg));
-                container.scrollTop = container.scrollHeight;
-            }
-        });
-
-        function afficherMessage(msg) {
-            const estMoi = msg.auteur_id === user.id;
-            const div = document.createElement('div');
-            div.className = 'message ' + (estMoi ? 'sent' : 'received');
-            const heure = msg.timestamp
-                ? new Date(msg.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
-                : '';
-            div.innerHTML = `
-                <div class="avatar">${(msg.auteur_prenom || '?')[0].toUpperCase()}</div>
+        liste.innerHTML = patients.map(p => `
+            <div class="patient-row" id="pr-${p.id}" onclick="ouvrirChat(${p.id}, '${p.nom}', '${p.prenom}')">
+                <div class="p-avatar">${(p.prenom || 'P')[0].toUpperCase()}</div>
                 <div>
-                    <div class="bubble">${msg.texte}</div>
-                    <div class="time">${heure}</div>
+                    <div class="p-nom">${p.prenom} ${p.nom}</div>
+                    <div class="p-info">Patient</div>
                 </div>
-            `;
-            container.appendChild(div);
-        }
-
-        window.envoyer = function() {
-            const input = document.getElementById('msg-input');
-            const texte = input.value.trim();
-            if (!texte) return;
-            messagesRef.push({
-                texte: texte,
-                auteur_id: user.id,
-                auteur_prenom: user.prenom,
-                timestamp: Date.now()
-            });
-            input.value = '';
-        };
+            </div>
+        `).join('');
+    } catch(e) {
+        document.getElementById('patients-list').innerHTML =
+            '<div class="vide">Erreur de chargement</div>';
     }
+}
+
+function ouvrirChat(patientId, nom, prenom) {
+    // Marquer actif
+    document.querySelectorAll('.patient-row').forEach(r => r.classList.remove('actif'));
+    const row = document.getElementById('pr-' + patientId);
+    if (row) row.classList.add('actif');
+
+    // Arrêter écoute précédente
+    if (ecouteActuelle) ecouteActuelle();
+
+    // Room identique à celle du patient
+    const roomId = `patient${patientId}_therapeute${user.id}`;
+    const messagesRef = db.ref('chats/' + roomId + '/messages');
+
+    document.getElementById('chat-zone').innerHTML = `
+        <div class="chat-header">
+            <div class="avatar-circle">${(prenom || 'P')[0].toUpperCase()}</div>
+            <div>
+                <h4>${prenom} ${nom}</h4>
+                <p>Patient</p>
+            </div>
+        </div>
+        <div class="status-bar" id="status">🔄 Connexion...</div>
+        <div class="messages" id="messages"></div>
+        <div class="input-zone">
+            <input type="text" id="msg-input" placeholder="Répondre à ${prenom}...">
+            <button class="btn-envoyer" id="btn-send">➤</button>
+        </div>
+    `;
+
+    // Écouter les messages
+    const ecoute = messagesRef.on('value', (snapshot) => {
+        document.getElementById('status').textContent = '🟢 Connecté';
+        const container = document.getElementById('messages');
+        container.innerHTML = '';
+
+        if (snapshot.exists()) {
+            Object.values(snapshot.val()).forEach(msg => {
+                const estMoi = String(msg.auteur_id) === String(user.id);
+                const div = document.createElement('div');
+                div.className = 'msg ' + (estMoi ? 'moi' : 'autre');
+                const heure = msg.timestamp
+                    ? new Date(msg.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+                    : '';
+                div.innerHTML = `
+                    ${!estMoi ? `<div class="msg-nom">${msg.auteur_prenom || ''}</div>` : ''}
+                    <div class="msg-bulle">${msg.texte}</div>
+                    <div class="msg-heure">${heure}</div>
+                `;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+    });
+
+    ecouteActuelle = () => messagesRef.off('value', ecoute);
+
+    // Envoyer message
+    function envoyer() {
+        const input = document.getElementById('msg-input');
+        const texte = input.value.trim();
+        if (!texte) return;
+        messagesRef.push({
+            texte: texte,
+            auteur_id: user.id,
+            auteur_prenom: user.prenom,
+            timestamp: Date.now()
+        }).then(() => {
+            input.value = '';
+        }).catch(err => {
+            alert('Erreur : ' + err.message);
+        });
+    }
+
+    document.getElementById('btn-send').addEventListener('click', envoyer);
+    document.getElementById('msg-input').addEventListener('keypress', e => {
+        if (e.key === 'Enter') envoyer();
+    });
+}
+
+chargerPatients();
 </script>
 </body>
 </html>

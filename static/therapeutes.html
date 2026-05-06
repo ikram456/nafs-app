@@ -10,18 +10,21 @@
         .navbar { background: #2D6A4F; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
         .navbar .logo { color: white; font-size: 28px; font-weight: bold; }
         .navbar a { color: white; text-decoration: none; font-size: 14px; margin-left: 20px; cursor: pointer; }
-        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
         h2 { color: #1B4332; margin-bottom: 8px; font-size: 24px; }
         .subtitle { color: #888; font-size: 14px; margin-bottom: 30px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .card { background: white; border-radius: 16px; padding: 28px 20px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: all 0.2s; border: 2px solid transparent; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 16px; padding: 28px 20px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: all 0.2s; border: 2px solid transparent; cursor: pointer; }
         .card:hover { border-color: #52B788; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
         .avatar { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; font-weight: bold; margin: 0 auto 14px; }
         .card h3 { color: #333; font-size: 16px; margin-bottom: 4px; }
-        .card p { color: #888; font-size: 13px; margin-bottom: 16px; }
-        .btn-chat { background: #2D6A4F; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
-        .btn-chat:hover { background: #1B4332; }
-        .btn-chat:disabled { background: #aaa; cursor: not-allowed; }
+        .card .specialite { color: #888; font-size: 13px; margin-bottom: 6px; }
+        .card .tarif { color: #2D6A4F; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+        .card .note { color: #f4a261; font-size: 13px; margin-bottom: 16px; }
+        .badge-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 14px; }
+        .badge { background: #f0faf5; border: 1px solid #52B788; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #2D6A4F; }
+        .btn-profil { background: #2D6A4F; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
+        .btn-profil:hover { background: #1B4332; }
         .empty { text-align: center; padding: 60px 20px; color: #888; grid-column: 1/-1; }
         .empty p { font-size: 15px; margin-top: 12px; }
         .loading { text-align: center; padding: 60px; color: #888; }
@@ -38,7 +41,7 @@
 
 <div class="container">
     <h2>Nos thérapeutes</h2>
-    <p class="subtitle">Choisissez le thérapeute avec qui vous souhaitez chatter</p>
+    <p class="subtitle">Cliquez sur un thérapeute pour voir son profil et le choisir</p>
     <div class="grid" id="grid">
         <div class="loading">Chargement...</div>
     </div>
@@ -54,6 +57,11 @@
     }
 
     const couleurs = ['#52B788', '#4A90D9', '#E76F51', '#9B5DE5', '#F15BB5', '#00BBF9'];
+
+    function etoiles(note) {
+        if (!note) return '☆☆☆☆☆';
+        return '★'.repeat(note) + '☆'.repeat(5 - note);
+    }
 
     async function chargerTherapeutesList() {
         try {
@@ -74,55 +82,39 @@
             grid.innerHTML = therapeutes.map((t, i) => {
                 const couleur = couleurs[i % couleurs.length];
                 const initiale = (t.prenom || t.nom || 'T')[0].toUpperCase();
+                const specialites = t.specialites
+                    ? t.specialites.split(',').slice(0, 2)
+                    : [];
+                const langues = t.langues
+                    ? t.langues.split(',').slice(0, 2)
+                    : [];
+
                 return `
-                    <div class="card">
+                    <div class="card" onclick="voirProfil(${t.id})">
                         <div class="avatar" style="background:${couleur}">${initiale}</div>
                         <h3>Dr. ${t.prenom} ${t.nom}</h3>
-                        <p>Thérapeute certifié</p>
-                        <button class="btn-chat" id="btn-${t.id}" onclick="allerAuChat(${t.id}, '${t.nom}', '${t.prenom}', this)">
-                            💬 Chatter
+                        <div class="specialite">${specialites.length > 0 ? specialites.join(' · ') : 'Thérapeute certifié'}</div>
+                        ${t.tarif ? `<div class="tarif">💰 ${t.tarif} MAD / séance</div>` : ''}
+                        <div class="note">${etoiles(t.note_moyenne)} ${t.nombre_avis > 0 ? '(' + t.nombre_avis + ' avis)' : ''}</div>
+                        <div class="badge-list">
+                            ${langues.map(l => `<span class="badge">🌍 ${l.trim()}</span>`).join('')}
+                            ${t.experience_ans ? `<span class="badge">⭐ ${t.experience_ans} ans</span>` : ''}
+                        </div>
+                        <button class="btn-profil" onclick="event.stopPropagation();voirProfil(${t.id})">
+                            👁️ Voir le profil
                         </button>
                     </div>
                 `;
             }).join('');
 
         } catch(e) {
-            document.getElementById('grid').innerHTML = '<p style="color:red;text-align:center">Erreur de chargement</p>';
+            document.getElementById('grid').innerHTML =
+                '<p style="color:red;text-align:center">Erreur de chargement</p>';
         }
     }
 
-    async function allerAuChat(therapeuteId, nom, prenom, btn) {
-        // Désactiver le bouton pendant le chargement
-        btn.disabled = true;
-        btn.textContent = '⏳ Chargement...';
-
-        try {
-            // ✅ Sauvegarder le matching en DB
-            await fetch('/api/choisir-therapeute', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    patient_id: user.id,
-                    therapeute_id: therapeuteId
-                })
-            });
-
-            // ✅ Sauvegarder dans localStorage
-            localStorage.setItem('matching', JSON.stringify({
-                therapeute_id: therapeuteId,
-                therapeute_nom: nom,
-                therapeute_prenom: prenom,
-                room_id: `patient${user.id}_therapeute${therapeuteId}`
-            }));
-
-            // ✅ Aller au chat
-            window.location.href = '/chat';
-
-        } catch(e) {
-            btn.disabled = false;
-            btn.textContent = '💬 Chatter';
-            alert('Erreur de connexion. Réessayez.');
-        }
+    function voirProfil(therapeuteId) {
+        window.location.href = '/therapeute?id=' + therapeuteId;
     }
 
     chargerTherapeutesList();

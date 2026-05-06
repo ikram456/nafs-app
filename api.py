@@ -522,3 +522,136 @@ def alter_tables():
 @app.get("/therapeute")
 def therapeute_profil():
     return FileResponse("static/therapeute.html")
+
+from models.matching import Questionnaire, Matching, Seance, Avis, Demande
+
+class DemandeData(BaseModel):
+    patient_id: int
+    therapeute_id: int
+    message: Optional[str] = None
+
+class ReponseDemandeData(BaseModel):
+    demande_id: int
+    statut: str  # acceptee ou refusee
+
+# ─── DEMANDES ──────────────────────────────────────────────────
+
+@app.post("/api/demande")
+def envoyer_demande(data: DemandeData):
+    db = SessionLocal()
+
+    # Vérifier si demande déjà envoyée
+    existante = db.query(Demande).filter(
+        Demande.patient_id == data.patient_id,
+        Demande.therapeute_id == data.therapeute_id
+    ).first()
+
+    if existante:
+        db.close()
+        return {
+            "message": "Demande déjà envoyée",
+            "statut": existante.statut,
+            "demande_id": existante.id
+        }
+
+    demande = Demande(
+        patient_id=data.patient_id,
+        therapeute_id=data.therapeute_id,
+        message=data.message,
+        statut="en_attente"
+    )
+    db.add(demande)
+    db.commit()
+    db.refresh(demande)
+    db.close()
+    return {
+        "message": "Demande envoyée",
+        "statut": "en_attente",
+        "demande_id": demande.id
+    }
+
+@app.get("/api/demandes-therapeute/{therapeute_id}")
+def get_demandes_therapeute(therapeute_id: int):
+    db = SessionLocal()
+    demandes = db.query(Demande).filter(
+        Demande.therapeute_id == therapeute_id,
+        Demande.statut == "en_attente"
+    ).all()
+    result = []
+    for d in demandes:
+        p = db.query(User).filter(User.id == d.patient_id).first()
+        if p:
+            result.append({
+                "id": d.id,
+                "patient_id": d.patient_id,
+                "patient_nom": p.nom,
+                "patient_prenom": p.prenom,
+                "message": d.message or "",
+                "created_at": d.created_at.isoformat() if d.created_at else ""
+            })
+    db.close()
+    return result
+
+@app.get("/api/demande-statut/{patient_id}/{therapeute_id}")
+def get_demande_statut(patient_id: int, therapeute_id: int):
+    db = SessionLocal()
+    demande = db.query(Demande).filter(
+        Demande.patient_id == patient_id,
+        Demande.therapeute_id == therapeute_id
+    ).first()
+    db.close()
+    if not demande:
+        return {"statut": "aucune"}
+    return {"statut": demande.statut, "demande_id": demande.id}
+
+@app.post("/api/repondre-demande")
+def repondre_demande(data: ReponseDemandeData):
+    db = SessionLocal()
+    demande = db.query(Demande).filter(Demande.id == data.demande_id).first()
+    if not demande:
+        db.close()
+        raise HTTPException(status_code=404, detail="Demande non trouvée")
+
+    demande.statut = data.statut
+    db.commit()
+
+    # Si acceptée → créer le matching
+    if data.statut == "acceptee":
+        existant = db.query(Matching).filter(
+            Matching.patient_id == demande.patient_id,
+            Matching.therapeute_id == demande.therapeute_id
+        ).first()
+        if not existant:
+            matching = Matching(
+                patient_id=demande.patient_id,
+                therapeute_id=demande.therapeute_id,
+                statut="actif"
+            )
+            db.add(matching)
+            db.commit()
+
+    db.close()
+    return {"message": "Réponse enregistrée", "statut": data.statut}
+
+@app.get("/api/migration-demandes")
+def migration_demandes():
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS demandes (
+                id SERIAL PRIMARY KEY,
+                patient_id INTEGER REFERENCES users(id),
+                therapeute_id INTEGER REFERENCES users(id),
+                statut VARCHAR DEFAULT 'en_attente',
+                message TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        db.close()
+        return {"message": str(e)}
+    db.close()
+    return {"message": "Table demandes créée"}

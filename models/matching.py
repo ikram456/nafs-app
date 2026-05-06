@@ -42,3 +42,12 @@ class Avis(Base):
     note = Column(Integer)           # note de 1 à 5
     commentaire = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class Demande(Base):
+    __tablename__ = "demandes"
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("users.id"))
+    therapeute_id = Column(Integer, ForeignKey("users.id"))
+    statut = Column(String, default="en_attente")  # en_attente, acceptee, refusee
+    message = Column(Text, nullable=True)           # message du patient
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)

@@ -1,14 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from database import engine, Base, SessionLocal
-from models import user, therapeute
-from models.matching import Questionnaire, Matching, Seance, Avis
 from models.user import User
+from models.matching import Questionnaire, Matching, Seance, Avis, Demande
 from controllers.auth_controller import connecter_user, inscrire_user
 
 Base.metadata.create_all(bind=engine)
@@ -27,7 +25,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 DAILY_API_KEY = "282286f7928b1501d7d6bf2a71ea38400a9e20b5671ac3938761de4a1fd38953"
 
-# ─── MODÈLES PYDANTIC ──────────────────────────────────────────────────────────
+# ─── MODÈLES PYDANTIC ──────────────────────────────────────────
 
 class LoginData(BaseModel):
     email: str
@@ -79,8 +77,17 @@ class NotesSeanceData(BaseModel):
     seance_id: int
     notes: str
 
+class DemandeData(BaseModel):
+    patient_id: int
+    therapeute_id: int
+    message: Optional[str] = None
 
-# ─── PAGES STATIQUES ───────────────────────────────────────────────────────────
+class ReponseDemandeData(BaseModel):
+    demande_id: int
+    statut: str
+
+
+# ─── PAGES STATIQUES ───────────────────────────────────────────
 
 @app.get("/")
 def home():
@@ -99,7 +106,7 @@ def dashboard_patient():
     return FileResponse("static/dashboard-patient.html")
 
 @app.get("/dashboard-therapeute")
-def dashboard_therapeute():
+def dashboard_therapeute_page():
     return FileResponse("static/dashboard-therapeute.html")
 
 @app.get("/dashboard-admin")
@@ -113,6 +120,10 @@ def questionnaire():
 @app.get("/therapeutes")
 def therapeutes():
     return FileResponse("static/therapeutes.html")
+
+@app.get("/therapeute")
+def therapeute_profil():
+    return FileResponse("static/therapeute.html")
 
 @app.get("/reservation")
 def reservation():
@@ -139,7 +150,7 @@ def video():
     return FileResponse("static/video.html")
 
 
-# ─── API VIDÉO DAILY.CO ────────────────────────────────────────────────────────
+# ─── API VIDÉO DAILY.CO ────────────────────────────────────────
 
 @app.post("/api/video/creer-salle")
 async def creer_salle_video():
@@ -171,7 +182,7 @@ async def creer_salle_video():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ─── AUTH ──────────────────────────────────────────────────────────────────────
+# ─── AUTH ──────────────────────────────────────────────────────
 
 @app.post("/auth/connexion")
 def connexion(data: LoginData):
@@ -206,19 +217,17 @@ def inscription(data: InscriptionData):
     }
 
 
-# ─── QUESTIONNAIRE & MATCHING ──────────────────────────────────────────────────
+# ─── QUESTIONNAIRE ─────────────────────────────────────────────
 
 @app.post("/api/questionnaire")
 def soumettre_questionnaire(data: QuestionnaireData):
     db = SessionLocal()
-
     existant = db.query(Questionnaire).filter(
         Questionnaire.patient_id == data.patient_id
     ).first()
     if existant:
         db.close()
-        return {"message": "Questionnaire déjà soumis", "deja_fait": True, "therapeute_id": None}
-
+        return {"message": "Questionnaire déjà soumis", "therapeute_id": None}
     q = Questionnaire(
         patient_id=data.patient_id,
         problematique=data.problematique,
@@ -232,57 +241,99 @@ def soumettre_questionnaire(data: QuestionnaireData):
     return {"message": "Questionnaire soumis", "therapeute_id": None}
 
 
-@app.post("/api/choisir-therapeute")
-def choisir_therapeute(data: ChoixTherapeuteData):
+# ─── DEMANDES ──────────────────────────────────────────────────
+
+@app.post("/api/demande")
+def envoyer_demande(data: DemandeData):
     db = SessionLocal()
-
-    existant = db.query(Matching).filter(
-        Matching.patient_id == data.patient_id,
-        Matching.therapeute_id == data.therapeute_id
+    existante = db.query(Demande).filter(
+        Demande.patient_id == data.patient_id,
+        Demande.therapeute_id == data.therapeute_id
     ).first()
-
-    if not existant:
-        matching = Matching(
-            patient_id=data.patient_id,
-            therapeute_id=data.therapeute_id
-        )
-        db.add(matching)
-        db.commit()
-
-    t = db.query(User).filter(User.id == data.therapeute_id).first()
-    db.close()
-
-    return {
-        "message": "Thérapeute choisi",
-        "therapeute_id": data.therapeute_id,
-        "therapeute_nom": t.nom if t else "",
-        "therapeute_prenom": t.prenom if t else "",
-        "room_id": f"patient{data.patient_id}_therapeute{data.therapeute_id}"
-    }
-
-
-@app.get("/api/matching/{patient_id}")
-def get_matching(patient_id: int):
-    db = SessionLocal()
-    matching = db.query(Matching).filter(
-        Matching.patient_id == patient_id
-    ).first()
-    if not matching:
+    if existante:
         db.close()
-        raise HTTPException(status_code=404, detail="Pas de matching")
-
-    t = db.query(User).filter(User.id == matching.therapeute_id).first()
+        return {
+            "message": "Demande déjà envoyée",
+            "statut": existante.statut,
+            "demande_id": existante.id
+        }
+    demande = Demande(
+        patient_id=data.patient_id,
+        therapeute_id=data.therapeute_id,
+        message=data.message,
+        statut="en_attente"
+    )
+    db.add(demande)
+    db.commit()
+    db.refresh(demande)
     db.close()
-
     return {
-        "therapeute_id": matching.therapeute_id,
-        "therapeute_nom": t.nom if t else "Inconnu",
-        "therapeute_prenom": t.prenom if t else "",
-        "room_id": f"patient{patient_id}_therapeute{matching.therapeute_id}"
+        "message": "Demande envoyée",
+        "statut": "en_attente",
+        "demande_id": demande.id
     }
 
+@app.get("/api/demande-statut/{patient_id}/{therapeute_id}")
+def get_demande_statut(patient_id: int, therapeute_id: int):
+    db = SessionLocal()
+    demande = db.query(Demande).filter(
+        Demande.patient_id == patient_id,
+        Demande.therapeute_id == therapeute_id
+    ).first()
+    db.close()
+    if not demande:
+        return {"statut": "aucune"}
+    return {"statut": demande.statut, "demande_id": demande.id}
 
-# ─── THÉRAPEUTES ───────────────────────────────────────────────────────────────
+@app.get("/api/demandes-therapeute/{therapeute_id}")
+def get_demandes_therapeute(therapeute_id: int):
+    db = SessionLocal()
+    demandes = db.query(Demande).filter(
+        Demande.therapeute_id == therapeute_id,
+        Demande.statut == "en_attente"
+    ).all()
+    result = []
+    for d in demandes:
+        p = db.query(User).filter(User.id == d.patient_id).first()
+        if p:
+            result.append({
+                "id": d.id,
+                "patient_id": d.patient_id,
+                "patient_nom": p.nom,
+                "patient_prenom": p.prenom,
+                "message": d.message or "",
+                "created_at": d.created_at.isoformat() if d.created_at else ""
+            })
+    db.close()
+    return result
+
+@app.post("/api/repondre-demande")
+def repondre_demande(data: ReponseDemandeData):
+    db = SessionLocal()
+    demande = db.query(Demande).filter(Demande.id == data.demande_id).first()
+    if not demande:
+        db.close()
+        raise HTTPException(status_code=404, detail="Demande non trouvée")
+    demande.statut = data.statut
+    db.commit()
+    if data.statut == "acceptee":
+        existant = db.query(Matching).filter(
+            Matching.patient_id == demande.patient_id,
+            Matching.therapeute_id == demande.therapeute_id
+        ).first()
+        if not existant:
+            matching = Matching(
+                patient_id=demande.patient_id,
+                therapeute_id=demande.therapeute_id,
+                statut="actif"
+            )
+            db.add(matching)
+            db.commit()
+    db.close()
+    return {"message": "Réponse enregistrée", "statut": data.statut}
+
+
+# ─── THÉRAPEUTES ───────────────────────────────────────────────
 
 @app.get("/api/therapeutes")
 def get_therapeutes():
@@ -294,7 +345,7 @@ def get_therapeutes():
             "id": t.id,
             "nom": t.nom,
             "prenom": t.prenom,
-            "bio": t.bio or "Thérapeute certifié",
+            "bio": t.bio or "",
             "specialites": t.specialites or "",
             "langues": t.langues or "",
             "tarif": t.tarif or 0,
@@ -337,7 +388,6 @@ def mettre_a_jour_profil(data: ProfilTherapeuteData):
     if not t:
         db.close()
         raise HTTPException(status_code=404, detail="Thérapeute non trouvé")
-
     if data.bio is not None: t.bio = data.bio
     if data.specialites is not None: t.specialites = data.specialites
     if data.langues is not None: t.langues = data.langues
@@ -347,13 +397,34 @@ def mettre_a_jour_profil(data: ProfilTherapeuteData):
     if data.genre is not None: t.genre = data.genre
     if data.disponibilites is not None: t.disponibilites = data.disponibilites
     t.profil_complete = True
-
     db.commit()
     db.close()
     return {"message": "Profil mis à jour"}
 
 
-# ─── SÉANCES ───────────────────────────────────────────────────────────────────
+# ─── PATIENTS ──────────────────────────────────────────────────
+
+@app.get("/api/mes-patients/{therapeute_id}")
+def get_mes_patients(therapeute_id: int):
+    db = SessionLocal()
+    matchings = db.query(Matching).filter(
+        Matching.therapeute_id == therapeute_id
+    ).all()
+    patients = []
+    for m in matchings:
+        p = db.query(User).filter(User.id == m.patient_id).first()
+        if p:
+            patients.append({
+                "id": p.id,
+                "nom": p.nom,
+                "prenom": p.prenom,
+                "problematique": p.problematique or ""
+            })
+    db.close()
+    return patients
+
+
+# ─── SÉANCES ───────────────────────────────────────────────────
 
 @app.post("/api/seance")
 def creer_seance(data: SeanceData):
@@ -378,7 +449,6 @@ def get_seances_patient(patient_id: int):
     seances = db.query(Seance).filter(
         Seance.patient_id == patient_id
     ).order_by(Seance.date_heure).all()
-
     result = []
     for s in seances:
         t = db.query(User).filter(User.id == s.therapeute_id).first()
@@ -399,7 +469,6 @@ def get_seances_therapeute(therapeute_id: int):
     seances = db.query(Seance).filter(
         Seance.therapeute_id == therapeute_id
     ).order_by(Seance.date_heure).all()
-
     result = []
     for s in seances:
         p = db.query(User).filter(User.id == s.patient_id).first()
@@ -428,7 +497,7 @@ def ajouter_notes(data: NotesSeanceData):
     return {"message": "Notes sauvegardées"}
 
 
-# ─── AVIS ──────────────────────────────────────────────────────────────────────
+# ─── AVIS ──────────────────────────────────────────────────────
 
 @app.post("/api/avis")
 def ajouter_avis(data: AvisData):
@@ -442,8 +511,6 @@ def ajouter_avis(data: AvisData):
     )
     db.add(avis)
     db.commit()
-
-    # Mettre à jour la note moyenne du thérapeute
     tous_avis = db.query(Avis).filter(Avis.therapeute_id == data.therapeute_id).all()
     moyenne = sum(a.note for a in tous_avis) // len(tous_avis)
     t = db.query(User).filter(User.id == data.therapeute_id).first()
@@ -451,34 +518,37 @@ def ajouter_avis(data: AvisData):
         t.note_moyenne = moyenne
         t.nombre_avis = len(tous_avis)
         db.commit()
-
     db.close()
     return {"message": "Avis ajouté"}
 
 
-# ─── PATIENTS ──────────────────────────────────────────────────────────────────
+# ─── MIGRATION ─────────────────────────────────────────────────
 
-@app.get("/api/mes-patients/{therapeute_id}")
-def get_mes_patients(therapeute_id: int):
+@app.get("/api/migration-demandes")
+def migration_demandes():
+    from sqlalchemy import text
     db = SessionLocal()
-    matchings = db.query(Matching).filter(
-        Matching.therapeute_id == therapeute_id
-    ).all()
-    patients = []
-    for m in matchings:
-        p = db.query(User).filter(User.id == m.patient_id).first()
-        if p:
-            patients.append({
-                "id": p.id,
-                "nom": p.nom,
-                "prenom": p.prenom,
-                "problematique": p.problematique or ""
-            })
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS demandes (
+                id SERIAL PRIMARY KEY,
+                patient_id INTEGER REFERENCES users(id),
+                therapeute_id INTEGER REFERENCES users(id),
+                statut VARCHAR DEFAULT 'en_attente',
+                message TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """))
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        db.close()
+        return {"message": str(e)}
     db.close()
-    return patients
+    return {"message": "Table demandes créée"}
 
 
-# ─── ADMIN ─────────────────────────────────────────────────────────────────────
+# ─── ADMIN ─────────────────────────────────────────────────────
 
 @app.get("/admin/supprimer-fake-therapeutes")
 def supprimer_fake():
@@ -518,140 +588,3 @@ def alter_tables():
     db.commit()
     db.close()
     return {"message": "Tables mises à jour"}
-
-@app.get("/therapeute")
-def therapeute_profil():
-    return FileResponse("static/therapeute.html")
-
-from models.matching import Questionnaire, Matching, Seance, Avis, Demande
-
-class DemandeData(BaseModel):
-    patient_id: int
-    therapeute_id: int
-    message: Optional[str] = None
-
-class ReponseDemandeData(BaseModel):
-    demande_id: int
-    statut: str  # acceptee ou refusee
-
-# ─── DEMANDES ──────────────────────────────────────────────────
-
-@app.post("/api/demande")
-def envoyer_demande(data: DemandeData):
-    db = SessionLocal()
-
-    # Vérifier si demande déjà envoyée
-    existante = db.query(Demande).filter(
-        Demande.patient_id == data.patient_id,
-        Demande.therapeute_id == data.therapeute_id
-    ).first()
-
-    if existante:
-        db.close()
-        return {
-            "message": "Demande déjà envoyée",
-            "statut": existante.statut,
-            "demande_id": existante.id
-        }
-
-    demande = Demande(
-        patient_id=data.patient_id,
-        therapeute_id=data.therapeute_id,
-        message=data.message,
-        statut="en_attente"
-    )
-    db.add(demande)
-    db.commit()
-    db.refresh(demande)
-    db.close()
-    return {
-        "message": "Demande envoyée",
-        "statut": "en_attente",
-        "demande_id": demande.id
-    }
-
-@app.get("/api/demandes-therapeute/{therapeute_id}")
-def get_demandes_therapeute(therapeute_id: int):
-    db = SessionLocal()
-    demandes = db.query(Demande).filter(
-        Demande.therapeute_id == therapeute_id,
-        Demande.statut == "en_attente"
-    ).all()
-    result = []
-    for d in demandes:
-        p = db.query(User).filter(User.id == d.patient_id).first()
-        if p:
-            result.append({
-                "id": d.id,
-                "patient_id": d.patient_id,
-                "patient_nom": p.nom,
-                "patient_prenom": p.prenom,
-                "message": d.message or "",
-                "created_at": d.created_at.isoformat() if d.created_at else ""
-            })
-    db.close()
-    return result
-
-@app.get("/api/demande-statut/{patient_id}/{therapeute_id}")
-def get_demande_statut(patient_id: int, therapeute_id: int):
-    db = SessionLocal()
-    demande = db.query(Demande).filter(
-        Demande.patient_id == patient_id,
-        Demande.therapeute_id == therapeute_id
-    ).first()
-    db.close()
-    if not demande:
-        return {"statut": "aucune"}
-    return {"statut": demande.statut, "demande_id": demande.id}
-
-@app.post("/api/repondre-demande")
-def repondre_demande(data: ReponseDemandeData):
-    db = SessionLocal()
-    demande = db.query(Demande).filter(Demande.id == data.demande_id).first()
-    if not demande:
-        db.close()
-        raise HTTPException(status_code=404, detail="Demande non trouvée")
-
-    demande.statut = data.statut
-    db.commit()
-
-    # Si acceptée → créer le matching
-    if data.statut == "acceptee":
-        existant = db.query(Matching).filter(
-            Matching.patient_id == demande.patient_id,
-            Matching.therapeute_id == demande.therapeute_id
-        ).first()
-        if not existant:
-            matching = Matching(
-                patient_id=demande.patient_id,
-                therapeute_id=demande.therapeute_id,
-                statut="actif"
-            )
-            db.add(matching)
-            db.commit()
-
-    db.close()
-    return {"message": "Réponse enregistrée", "statut": data.statut}
-
-@app.get("/api/migration-demandes")
-def migration_demandes():
-    from sqlalchemy import text
-    db = SessionLocal()
-    try:
-        db.execute(text("""
-            CREATE TABLE IF NOT EXISTS demandes (
-                id SERIAL PRIMARY KEY,
-                patient_id INTEGER REFERENCES users(id),
-                therapeute_id INTEGER REFERENCES users(id),
-                statut VARCHAR DEFAULT 'en_attente',
-                message TEXT,
-                created_at TIMESTAMP DEFAULT NOW()
-            )
-        """))
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        db.close()
-        return {"message": str(e)}
-    db.close()
-    return {"message": "Table demandes créée"}
